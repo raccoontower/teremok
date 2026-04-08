@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { ROUTES } from '@/lib/constants/routes';
-import { Logo } from '@/components/layout/Logo';
 
 const currentYear = new Date().getFullYear();
 
