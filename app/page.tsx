@@ -12,7 +12,7 @@ import { ListingCard } from '@/components/listings/ListingCard';
 import { JobCard } from '@/components/home/JobCard';
 import { HousingCard } from '@/components/home/HousingCard';
 import { ServiceCard } from '@/components/home/ServiceCard';
-import { getCategories } from '@/lib/firebase/firestore';
+
 import { ROUTES } from '@/lib/constants/routes';
 import type { Category } from '@/types';
 
@@ -54,8 +54,9 @@ export default function HomePage() {
   const previewServices = services.slice(0, PREVIEW_COUNT);
 
   useEffect(() => {
-    getCategories()
-      .then((cats) => setCategories(cats.slice(0, 8)))
+    fetch('/api/categories')
+      .then((r) => r.json())
+      .then((d: { categories?: Category[] }) => setCategories((d.categories ?? []).slice(0, 8)))
       .catch(() => setCategories([]))
       .finally(() => setCategoriesLoading(false));
   }, []);

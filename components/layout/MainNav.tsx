@@ -13,13 +13,13 @@ const TABS = [
   { label: 'Работа',     href: '/jobs'     },
   { label: 'Жильё',      href: '/housing'  },
   { label: 'Услуги',     href: '/services' },
+  { label: 'Блог',       href: '/blog'     },
 ];
 
 // Элементы дропдауна "Ещё"
 const MORE_ITEMS = [
   { label: 'Афиша',   href: '#', soon: true },
   { label: 'Места',   href: '#', soon: true },
-  { label: 'Новости', href: '#', soon: true },
 ];
 
 /**
