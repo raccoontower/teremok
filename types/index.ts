@@ -258,6 +258,24 @@ export const SERVICE_AREA_LABELS: Record<ServiceArea, string> = {
   'both': 'На месте и удалённо',
 };
 
+// ============================
+// БЛОГ
+// ============================
+
+export interface BlogPost {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string; // HTML or plain text with newlines
+  category: string;
+  authorName: string;
+  publishedAt: Timestamp;
+  updatedAt: Timestamp;
+  status: 'published' | 'draft';
+  viewsCount: number;
+}
+
 export interface Contact {
   phone?: string;
   whatsapp?: string;
