@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/Button';
+import { CitySelector } from '@/components/layout/CitySelector';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { signOut } from '@/lib/firebase/auth';
 import { ROUTES } from '@/lib/constants/routes';
@@ -36,6 +37,9 @@ export function Header() {
             {/* Убрали hidden sm:block — текст виден на всех экранах */}
             <span>Теремок</span>
           </Link>
+
+          {/* Селектор города — между логотипом и кнопками */}
+          <CitySelector />
 
           {/* Правая часть */}
           <div className="flex items-center gap-2">
