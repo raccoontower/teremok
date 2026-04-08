@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useCityContext } from '@/contexts/CityContext';
 import { useListings } from '@/hooks/useListings';
 import { useJobs } from '@/hooks/useJobs';
@@ -35,9 +34,7 @@ function getCategoryIcon(slug: string): string {
 }
 
 export default function HomePage() {
-  const router = useRouter();
   const { selectedCity } = useCityContext();
-  const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
@@ -63,81 +60,36 @@ export default function HomePage() {
       .finally(() => setCategoriesLoading(false));
   }, []);
 
-  const handleSearch = () => {
-    const q = searchQuery.trim();
-    if (q) {
-      router.push(`/search?q=${encodeURIComponent(q)}`);
-    } else {
-      router.push('/search');
-    }
-  };
-
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') handleSearch();
-  };
-
-  return (
+    return (
     <main className="min-h-screen bg-neutral-50">
 
-      {/* ===== СЕКЦИЯ 1: Герой с поиском ===== */}
-      <section className="bg-white border-b border-neutral-100">
-        <div className="max-w-3xl mx-auto px-4 py-12 md:py-16 text-center">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-neutral-900 mb-2">
-            🏡 Teremok
+      {/* ===== СЕКЦИЯ 1: Hero-баннер ===== */}
+      <section className="bg-gradient-to-br from-primary-600 to-primary-700 text-white">
+        <div className="max-w-3xl mx-auto px-4 py-10 md:py-14 text-center">
+          <h1 className="text-2xl md:text-3xl font-extrabold mb-2">
+            Русское сообщество в США
           </h1>
-          <p className="text-neutral-500 text-base md:text-lg mb-8">
-            Объявления, вакансии, жильё и услуги для русскоязычных в США
+          <p className="text-primary-100 text-sm md:text-base mb-6 max-w-xl mx-auto">
+            Найдите работу, жильё, услуги или разместите объявление — всё на русском языке
           </p>
-
-          {/* Большой поиск */}
-          <div className="flex gap-2 max-w-[600px] mx-auto mb-6">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
-              placeholder="Поиск работы, жилья, услуг..."
-              className="flex-1 h-12 rounded-full border border-neutral-200 px-5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-sm"
-            />
-            <button
-              onClick={handleSearch}
-              className="h-12 px-6 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-full transition-colors text-sm shadow-sm whitespace-nowrap"
-            >
-              🔍 Найти
-            </button>
-          </div>
-
-          {/* Быстрые категории */}
-          <div className="flex flex-wrap items-center justify-center gap-2">
+          <div className="flex flex-wrap justify-center gap-3">
             <Link
-              href={ROUTES.listings}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-neutral-200 text-sm font-medium text-neutral-700 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+              href={ROUTES.newListing}
+              className="inline-flex items-center gap-2 h-11 px-6 bg-white text-primary-700 font-semibold rounded-full text-sm hover:bg-primary-50 transition-colors shadow"
             >
-              📦 Объявления
+              + Подать объявление
             </Link>
             <Link
               href={ROUTES.jobs}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-neutral-200 text-sm font-medium text-neutral-700 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+              className="inline-flex items-center gap-2 h-11 px-6 border border-white/40 text-white font-medium rounded-full text-sm hover:bg-white/10 transition-colors"
             >
-              💼 Работа
+              💼 Найти работу
             </Link>
             <Link
               href={ROUTES.housing}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-neutral-200 text-sm font-medium text-neutral-700 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+              className="inline-flex items-center gap-2 h-11 px-6 border border-white/40 text-white font-medium rounded-full text-sm hover:bg-white/10 transition-colors"
             >
-              🏠 Жильё
-            </Link>
-            <Link
-              href={ROUTES.services}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-neutral-200 text-sm font-medium text-neutral-700 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50 transition-colors"
-            >
-              🔧 Услуги
-            </Link>
-            <Link
-              href={ROUTES.newListing}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-neutral-900 text-white text-sm font-medium hover:bg-neutral-800 transition-colors"
-            >
-              + Подать объявление
+              🏠 Снять жильё
             </Link>
           </div>
         </div>
