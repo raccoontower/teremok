@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getService } from '@/lib/firebase/services';
 import type { Service } from '@/types';
 
 interface UseServiceReturn {
@@ -10,9 +9,6 @@ interface UseServiceReturn {
   error: string | null;
 }
 
-/**
- * Хук для получения одной услуги по ID.
- */
 export function useService(id: string): UseServiceReturn {
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,24 +16,27 @@ export function useService(id: string): UseServiceReturn {
 
   useEffect(() => {
     if (!id) return;
-
+    let cancelled = false;
     setLoading(true);
     setError(null);
 
-    getService(id)
-      .then((data) => {
-        if (!data) {
-          setError('Услуга не найдена');
-        } else {
-          setService(data);
-        }
+    fetch(`/api/services/${id}`)
+      .then((r) => {
+        if (r.status === 404) throw new Error('not_found');
+        if (!r.ok) throw new Error('fetch_error');
+        return r.json() as Promise<{ service: Service }>;
       })
-      .catch(() => {
-        setError('Не удалось загрузить услугу');
+      .then((d) => {
+        if (!cancelled) setService(d.service ?? null);
+      })
+      .catch((err: Error) => {
+        if (!cancelled) setError(err.message === 'not_found' ? 'Услуга не найдена' : 'Не удалось загрузить услугу');
       })
       .finally(() => {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       });
+
+    return () => { cancelled = true; };
   }, [id]);
 
   return { service, loading, error };

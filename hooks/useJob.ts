@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getJob } from '@/lib/firebase/jobs';
 import type { Job } from '@/types';
 
 interface UseJobReturn {
@@ -10,9 +9,6 @@ interface UseJobReturn {
   error: string | null;
 }
 
-/**
- * Хук для получения одной вакансии по ID.
- */
 export function useJob(id: string): UseJobReturn {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,24 +16,27 @@ export function useJob(id: string): UseJobReturn {
 
   useEffect(() => {
     if (!id) return;
-
+    let cancelled = false;
     setLoading(true);
     setError(null);
 
-    getJob(id)
-      .then((data) => {
-        if (!data) {
-          setError('Вакансия не найдена');
-        } else {
-          setJob(data);
-        }
+    fetch(`/api/jobs/${id}`)
+      .then((r) => {
+        if (r.status === 404) throw new Error('not_found');
+        if (!r.ok) throw new Error('fetch_error');
+        return r.json() as Promise<{ job: Job }>;
       })
-      .catch(() => {
-        setError('Не удалось загрузить вакансию');
+      .then((d) => {
+        if (!cancelled) setJob(d.job ?? null);
+      })
+      .catch((err: Error) => {
+        if (!cancelled) setError(err.message === 'not_found' ? 'Вакансия не найдена' : 'Не удалось загрузить вакансию');
       })
       .finally(() => {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       });
+
+    return () => { cancelled = true; };
   }, [id]);
 
   return { job, loading, error };

@@ -3,14 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { getPost, incrementPostViews } from '@/lib/firebase/blog';
 import type { BlogPost } from '@/types';
-import { Timestamp } from 'firebase/firestore';
 
-function formatDate(ts: Timestamp | undefined): string {
+function formatDate(ts: string | undefined): string {
   if (!ts) return '';
-  const date = ts.toDate ? ts.toDate() : new Date(ts as unknown as number);
-  return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  try { return new Date(ts).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }); }
+  catch { return ''; }
 }
 
 export default function BlogPostPage() {
@@ -23,15 +21,9 @@ export default function BlogPostPage() {
 
   useEffect(() => {
     if (!slug) return;
-    getPost(slug)
-      .then((p) => {
-        if (!p || p.status !== 'published') {
-          setNotFound(true);
-        } else {
-          setPost(p);
-          incrementPostViews(p.id);
-        }
-      })
+    fetch(`/api/blog/${slug}`)
+      .then((r) => { if (!r.ok) throw new Error('not_found'); return r.json() as Promise<{ post: BlogPost }>; })
+      .then((d) => { setPost(d.post ?? null); if (!d.post) setNotFound(true); })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [slug]);
@@ -84,7 +76,7 @@ export default function BlogPostPage() {
             <span className="inline-block bg-primary-50 text-primary-600 text-xs font-semibold px-3 py-1 rounded-full">
               {post.category}
             </span>
-            <span className="text-neutral-400 text-sm">{formatDate(post.publishedAt)}</span>
+            <span className="text-neutral-400 text-sm">{formatDate(post.publishedAt as unknown as string)}</span>
           </div>
 
           {/* Title */}
