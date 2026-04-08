@@ -10,7 +10,7 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useCities } from '@/hooks/useCities';
-import { createJob } from '@/lib/firebase/jobs';
+
 import {
   JOB_TYPE_LABELS,
   JOB_CATEGORY_LABELS,
@@ -78,32 +78,14 @@ export function JobForm() {
     setServerError(null);
 
     try {
-      const jobId = await createJob(
-        {
-          listingType: data.listingType,
-          title: data.title,
-          description: data.description,
-          jobType: data.jobType,
-          category: data.category,
-          salaryMin: data.salaryMin || undefined,
-          salaryMax: data.salaryMax || undefined,
-          salaryPeriod: data.salaryPeriod || undefined,
-          salaryNegotiable: data.salaryNegotiable,
-          cityId: data.cityId,
-          requirements: data.requirements || undefined,
-          contact: {
-            name: data.contact.name,
-            phone: data.contact.phone || undefined,
-            whatsapp: data.contact.whatsapp || undefined,
-            telegram: data.contact.telegram || undefined,
-            email: data.contact.email || undefined,
-          },
-          // authorId и authorName добавляются в createJob
-          authorId: user.uid,
-          authorName: user.displayName || 'Пользователь',
-        },
-        user
-      );
+      const token = await user.getIdToken();
+      const res = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('API error');
+      const { id: jobId } = await res.json() as { id: string };
       router.push(`/jobs/${jobId}`);
     } catch (err) {
       console.error(err);

@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useCategories } from '@/hooks/useCategories';
 import { useCities } from '@/hooks/useCities';
-import { createListing } from '@/lib/firebase/firestore';
+
 import { uploadPhoto } from '@/lib/firebase/storage';
 import { listingSchema, type ListingFormData } from '@/lib/utils/validators';
 import { ROUTES } from '@/lib/constants/routes';
@@ -89,14 +89,15 @@ export function ListingForm() {
         )
       );
 
-      // Создаём объявление в Firestore
-      const listingId = await createListing({
-        ...data,
-        photos: photoUrls,
-        authorId: user.uid,
-        authorName: user.displayName || 'Пользователь',
-        status: 'active',
+      // Создаём объявление через API route
+      const token = await user.getIdToken();
+      const res = await fetch('/api/listings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ ...data, photos: photoUrls }),
       });
+      if (!res.ok) throw new Error('API error');
+      const { id: listingId } = await res.json() as { id: string };
 
       router.push(ROUTES.listing(listingId));
     } catch (err) {

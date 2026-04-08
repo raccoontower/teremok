@@ -11,7 +11,7 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useCities } from '@/hooks/useCities';
-import { createHousingListing } from '@/lib/firebase/housing';
+
 import { uploadPhoto } from '@/lib/firebase/storage';
 import { PROPERTY_TYPE_LABELS, type Housing } from '@/types';
 import { MAX_PHOTOS, ALLOWED_PHOTO_TYPES, MAX_PHOTO_SIZE_MB } from '@/lib/constants/limits';
@@ -110,34 +110,14 @@ export function HousingForm() {
         )
       );
 
-      const listingId = await createHousingListing(
-        {
-          title: data.title,
-          description: data.description,
-          listingType: data.listingType,
-          propertyType: data.propertyType,
-          bedrooms: data.bedrooms as Housing['bedrooms'],
-          bathrooms: data.bathrooms || undefined,
-          sqft: data.sqft || undefined,
-          price: data.price,
-          utilitiesIncluded: data.utilitiesIncluded,
-          petFriendly: data.petFriendly,
-          cityId: data.cityId,
-          neighborhood: data.neighborhood || undefined,
-          photos: photoUrls,
-          contact: {
-            name: data.contact.name,
-            phone: data.contact.phone || undefined,
-            whatsapp: data.contact.whatsapp || undefined,
-            telegram: data.contact.telegram || undefined,
-            email: data.contact.email || undefined,
-          },
-          // authorId и authorName добавляются в createHousingListing
-          authorId: user.uid,
-          authorName: user.displayName || 'Пользователь',
-        },
-        user
-      );
+      const token = await user.getIdToken();
+      const res = await fetch('/api/housing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ ...data, photos: photoUrls }),
+      });
+      if (!res.ok) throw new Error('API error');
+      const { id: listingId } = await res.json() as { id: string };
       router.push(`/housing/${listingId}`);
     } catch (err) {
       console.error(err);

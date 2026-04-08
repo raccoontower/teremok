@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/firebase/admin';
 import { serializeDoc } from '@/lib/firebase/serialize';
+import { getAuth } from 'firebase-admin/auth';
+import { getApps } from 'firebase-admin/app';
 
 export const runtime = 'nodejs';
+
+function getAdminAuthApp() { return getApps()[0]; }
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,17 +20,36 @@ export async function GET(req: NextRequest) {
     const snap = await db.collection('housing').orderBy('createdAt', 'desc').limit(limitN).get();
 
     let docs = snap.docs.map((d) => serializeDoc({ id: d.id, ...d.data() }));
-
-    docs = docs.filter((d: Record<string, unknown>) => d.status === 'active');
-    if (cityId) docs = docs.filter((d: Record<string, unknown>) => d.cityId === cityId);
-    if (listingType) docs = docs.filter((d: Record<string, unknown>) => d.listingType === listingType);
-    if (propertyType) docs = docs.filter((d: Record<string, unknown>) => d.propertyType === propertyType);
+    docs = docs.filter((d) => d.status === 'active');
+    if (cityId) docs = docs.filter((d) => d.cityId === cityId);
+    if (listingType) docs = docs.filter((d) => d.listingType === listingType);
+    if (propertyType) docs = docs.filter((d) => d.propertyType === propertyType);
 
     return NextResponse.json({ listings: docs }, {
       headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
     });
   } catch (err) {
-    console.error('[API /housing]', err);
+    console.error('[API GET /housing]', err);
     return NextResponse.json({ error: 'Failed to load housing' }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const decoded = await getAuth(getAdminAuthApp()).verifyIdToken(authHeader.slice(7));
+    const body = await req.json() as Record<string, unknown>;
+    const db = getAdminDb();
+    const { FieldValue } = await import('firebase-admin/firestore');
+    const docRef = await db.collection('housing').add({
+      ...body, authorId: decoded.uid, authorName: decoded.name ?? decoded.email ?? 'Пользователь',
+      status: 'active', viewsCount: 0, isPremium: false,
+      createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
+    });
+    return NextResponse.json({ id: docRef.id }, { status: 201 });
+  } catch (err) {
+    console.error('[API POST /housing]', err);
+    return NextResponse.json({ error: 'Failed to create housing' }, { status: 500 });
   }
 }

@@ -11,7 +11,7 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useCities } from '@/hooks/useCities';
-import { createService } from '@/lib/firebase/services';
+
 import { uploadPhoto } from '@/lib/firebase/storage';
 import { SERVICE_CATEGORY_LABELS, SERVICE_AREA_LABELS } from '@/types';
 import { MAX_PHOTOS, ALLOWED_PHOTO_TYPES, MAX_PHOTO_SIZE_MB } from '@/lib/constants/limits';
@@ -111,31 +111,14 @@ export function ServiceForm() {
         .map((l) => l.trim())
         .filter(Boolean);
 
-      const serviceId = await createService(
-        {
-          title: data.title,
-          description: data.description,
-          category: data.category,
-          priceType: data.priceType,
-          price: data.price || undefined,
-          serviceArea: data.serviceArea,
-          experience: data.experience || undefined,
-          languages,
-          cityId: data.cityId,
-          photos: photoUrls,
-          contact: {
-            name: data.contact.name,
-            phone: data.contact.phone || undefined,
-            whatsapp: data.contact.whatsapp || undefined,
-            telegram: data.contact.telegram || undefined,
-            email: data.contact.email || undefined,
-          },
-          // authorId и authorName добавляются в createService
-          authorId: user.uid,
-          authorName: user.displayName || 'Пользователь',
-        },
-        user
-      );
+      const token = await user.getIdToken();
+      const res = await fetch('/api/services', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ ...data, languages, photos: photoUrls }),
+      });
+      if (!res.ok) throw new Error('API error');
+      const { id: serviceId } = await res.json() as { id: string };
       router.push(`/services/${serviceId}`);
     } catch (err) {
       console.error(err);
