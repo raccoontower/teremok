@@ -82,14 +82,7 @@ export function ListingCard({ listing, className }: ListingCardProps) {
     <Link
       href={ROUTES.listing(id)}
       className={cn(
-        // Скругление 16px — современная карточка
-        'group block bg-white rounded-[16px] overflow-hidden',
-        // Тень: лёгкая по умолчанию, глубже при hover
-        'shadow-card',
-        // Hover: тень глубже + сдвиг вверх (ощущение "поднятия")
-        'hover:shadow-hover hover:-translate-y-0.5',
-        // Плавный transition для всех свойств
-        'transition-all duration-200',
+        'group block bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden',
         className
       )}
     >
@@ -134,12 +127,12 @@ export function ListingCard({ listing, className }: ListingCardProps) {
         </p>
 
         {/* Заголовок */}
-        <p className="text-sm text-neutral-800 mt-1 line-clamp-2 leading-snug">
+        <p className="text-base font-semibold text-slate-900 line-clamp-2 mt-1">
           {title}
         </p>
 
         {/* Мета: город и дата — с иконками */}
-        <div className="flex items-center justify-between mt-2.5 text-xs text-neutral-500">
+        <div className="flex items-center justify-between mt-2.5 text-sm text-slate-500">
           {/* Город с pin-иконкой */}
           <span className="flex items-center gap-1 truncate">
             <PinIcon />

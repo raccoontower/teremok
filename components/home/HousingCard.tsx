@@ -32,8 +32,7 @@ export function HousingCard({ housing, className }: HousingCardProps) {
     <Link
       href={`/housing/${id}`}
       className={cn(
-        'group block bg-white rounded-[16px] overflow-hidden min-w-[260px] md:min-w-0 snap-start',
-        'shadow-card hover:shadow-hover hover:-translate-y-0.5 transition-all duration-200',
+        'group block bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden min-w-[260px] md:min-w-0 snap-start',
         className
       )}
     >
@@ -57,7 +56,7 @@ export function HousingCard({ housing, className }: HousingCardProps) {
         </div>
 
         {/* Заголовок */}
-        <p className="text-sm font-semibold text-neutral-900 line-clamp-2 leading-snug">
+        <p className="text-base font-semibold text-slate-900 line-clamp-2">
           {title}
         </p>
 
@@ -65,10 +64,10 @@ export function HousingCard({ housing, className }: HousingCardProps) {
         <p className="text-base font-bold text-primary-600">{priceText}</p>
 
         {/* Спальни */}
-        <p className="text-xs text-neutral-500">{BEDROOMS_LABELS[bedrooms] ?? `${bedrooms} спален`}</p>
+        <p className="text-sm text-slate-500">{BEDROOMS_LABELS[bedrooms] ?? `${bedrooms} спален`}</p>
 
         {/* Мета: город и дата */}
-        <div className="flex items-center justify-between text-xs text-neutral-400 pt-1">
+        <div className="flex items-center justify-between text-sm text-slate-500 pt-1">
           <span className="truncate">📍 {cityId}</span>
           {formattedDate && <span className="shrink-0 ml-2">{formattedDate}</span>}
         </div>

@@ -74,3 +74,18 @@
     @apply max-w-screen-lg mx-auto px-4;
   }
 }
+
+/* === Typography scale (design system) === */
+@layer base {
+  h1 { @apply text-3xl font-semibold text-slate-900 tracking-tight; }
+  h2 { @apply text-2xl font-semibold text-slate-900; }
+  h3 { @apply text-xl font-semibold text-slate-800; }
+  h4 { @apply text-lg font-semibold text-slate-800; }
+}
+
+/* === Focus states (accessibility) === */
+@layer base {
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+  }
+}

@@ -11,6 +11,8 @@ interface ListingFiltersProps {
   onCityChange: (cityId: string) => void;
   onCategoryChange: (categoryId: string) => void;
   onReset: () => void;
+  sort?: string;
+  onSortChange?: (v: string) => void;
 }
 
 export function ListingFilters({
@@ -19,6 +21,8 @@ export function ListingFilters({
   onCityChange,
   onCategoryChange,
   onReset,
+  sort,
+  onSortChange,
 }: ListingFiltersProps) {
   const { categories, loading: categoriesLoading } = useCategories();
   const { cities, loading: citiesLoading } = useCities();
@@ -54,6 +58,22 @@ export function ListingFilters({
           }))}
         />
       </div>
+
+      {/* Сортировка */}
+      {onSortChange && (
+        <div className="w-full sm:w-auto sm:min-w-[180px]">
+          <select
+            value={sort ?? ''}
+            onChange={(e) => onSortChange(e.target.value)}
+            className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+          >
+            <option value="">Сначала новые</option>
+            <option value="oldest">Сначала старые</option>
+            <option value="price_asc">По цене ↑</option>
+            <option value="price_desc">По цене ↓</option>
+          </select>
+        </div>
+      )}
 
       {/* Кнопка сброса фильтров */}
       {hasActiveFilters && (

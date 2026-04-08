@@ -31,8 +31,7 @@ export function JobCard({ job, className }: JobCardProps) {
     <Link
       href={`/jobs/${id}`}
       className={cn(
-        'group block bg-white rounded-[16px] overflow-hidden min-w-[260px] md:min-w-0 snap-start',
-        'shadow-card hover:shadow-hover hover:-translate-y-0.5 transition-all duration-200',
+        'group block bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden min-w-[260px] md:min-w-0 snap-start',
         className
       )}
     >
@@ -46,7 +45,7 @@ export function JobCard({ job, className }: JobCardProps) {
         </span>
 
         {/* Заголовок */}
-        <p className="text-sm font-semibold text-neutral-900 line-clamp-2 leading-snug">
+        <p className="text-base font-semibold text-slate-900 line-clamp-2">
           {title}
         </p>
 
@@ -54,7 +53,7 @@ export function JobCard({ job, className }: JobCardProps) {
         <p className="text-base font-bold text-primary-600">{salaryText}</p>
 
         {/* Мета: город и дата */}
-        <div className="flex items-center justify-between text-xs text-neutral-400 pt-1">
+        <div className="flex items-center justify-between text-sm text-slate-500 pt-1">
           <span className="truncate">📍 {cityId}</span>
           {formattedDate && <span className="shrink-0 ml-2">{formattedDate}</span>}
         </div>
