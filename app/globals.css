@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS-переменные дизайн-системы ───────────────────────────────────────── */
+/* Единый источник для цветов — используется там где Tailwind недостаточен    */
+
+:root {
+  /* Основной бренд-синий (тёплый) */
+  --color-primary-50:  #eef3ff;
+  --color-primary-100: #dce8ff;
+  --color-primary-500: #3f5ef3;
+  --color-primary-600: #2848e8;
+  --color-primary-700: #1f38cc;
+
+  /* Тёплые нейтральные серые */
+  --color-neutral-50:  #f8f8fa;
+  --color-neutral-100: #f0f0f4;
+  --color-neutral-200: #e4e4ea;
+  --color-neutral-400: #a8a8b5;
+  --color-neutral-600: #5e5e6a;
+  --color-neutral-800: #313138;
+  --color-neutral-900: #1c1c21;
+
+  /* Семантические цвета состояний */
+  --color-success: #16a34a;
+  --color-error:   #e11d48;
+  --color-warning: #d97706;
+
+  /* Тени */
+  --shadow-card:    0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04);
+  --shadow-hover:   0 8px 24px -4px rgba(0,0,0,0.10), 0 2px 8px -2px rgba(0,0,0,0.06);
+  --shadow-focus:   0 0 0 3px rgba(40,72,232,0.20);
+  --shadow-dropdown: 0 10px 40px -4px rgba(0,0,0,0.12), 0 2px 8px -2px rgba(0,0,0,0.08);
+}
+
+/* ─── Базовые стили ────────────────────────────────────────────────────────── */
+
+@layer base {
+  html {
+    @apply antialiased;
+    /* Плавный scroll — без резких прыжков при якорных ссылках */
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-neutral-50 text-neutral-900;
+    /* Убираем синюю подсветку tap на мобайле — выглядит устаревше */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Цвет выделения текста — синий фон, белый текст, фирменный стиль */
+  ::selection {
+    background-color: var(--color-primary-600);
+    color: #ffffff;
+  }
+
+  ::-moz-selection {
+    background-color: var(--color-primary-600);
+    color: #ffffff;
+  }
+
+  /* Плавный фокус для всего сайта — не резкий дефолтный браузерный */
+  :focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: 2px;
+  }
+}
+
+/* ─── Утилиты ─────────────────────────────────────────────────────────────── */
+
+@layer components {
+  .container-page {
+    @apply max-w-screen-lg mx-auto px-4;
+  }
+}
