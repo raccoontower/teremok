@@ -85,7 +85,32 @@ export interface Housing {
 // УСЛУГИ
 // ============================
 
-export type ServiceCategory = 'plumbing' | 'electrical' | 'repair' | 'cleaning' | 'it' | 'tutoring' | 'beauty' | 'legal' | 'accounting' | 'translation' | 'moving' | 'other';
+export type ServiceCategory =
+  | 'accounting'      // Бухгалтерия, налоги
+  | 'legal'           // Юридические услуги
+  | 'realty'          // Риэлторы
+  | 'insurance'       // Страхование
+  | 'loans'           // Кредиты и ипотека
+  | 'medical'         // Медицина
+  | 'beauty'          // Красота и здоровье
+  | 'home-repair'     // Дом и ремонт
+  | 'plumbing'        // Сантехника
+  | 'electrical'      // Электрика
+  | 'cleaning'        // Клининговые услуги
+  | 'auto'            // Автоуслуги
+  | 'trucking'        // Траковый бизнес
+  | 'moving'          // Грузоперевозки
+  | 'it'              // IT, компьютерные услуги
+  | 'education'       // Образование и курсы
+  | 'childcare'       // Для детей
+  | 'elderly-care'    // Уход за пожилыми
+  | 'events'          // Организация мероприятий
+  | 'media'           // Медиа, СМИ, реклама
+  | 'entertainment'   // Отдых и досуг
+  | 'business-sales'  // Покупка и продажа бизнеса
+  | 'translation'     // Переводы
+  | 'stores'          // Магазины
+  | 'other';          // Прочее
 export type ServicePriceType = 'fixed' | 'hourly' | 'negotiable';
 export type ServiceArea = 'local' | 'remote' | 'both';
 
@@ -136,18 +161,31 @@ export const JOB_CATEGORY_LABELS: Record<JobCategory, string> = {
 };
 
 export const SERVICE_CATEGORY_LABELS: Record<ServiceCategory, string> = {
-  'plumbing': 'Сантехника',
-  'electrical': 'Электрика',
-  'repair': 'Ремонт',
-  'cleaning': 'Уборка',
-  'it': 'IT / Компьютеры',
-  'tutoring': 'Репетиторство',
-  'beauty': 'Красота / Массаж',
-  'legal': 'Юридические услуги',
-  'accounting': 'Бухгалтерия',
-  'translation': 'Переводы',
-  'moving': 'Перевозки',
-  'other': 'Другое',
+  'accounting':     'Бухгалтерия, налоги',
+  'legal':          'Юридические услуги',
+  'realty':         'Риэлторы',
+  'insurance':      'Страхование',
+  'loans':          'Кредиты и ипотека',
+  'medical':        'Медицина',
+  'beauty':         'Красота и здоровье',
+  'home-repair':    'Дом и ремонт',
+  'plumbing':       'Сантехника',
+  'electrical':     'Электрика',
+  'cleaning':       'Клининговые услуги',
+  'auto':           'Автоуслуги',
+  'trucking':       'Траковый бизнес',
+  'moving':         'Грузоперевозки, moving',
+  'it':             'IT, компьютерные услуги',
+  'education':      'Образование и курсы',
+  'childcare':      'Для детей',
+  'elderly-care':   'Уход за пожилыми',
+  'events':         'Организация мероприятий',
+  'media':          'Медиа, СМИ',
+  'entertainment':  'Отдых и досуг',
+  'business-sales': 'Покупка и продажа бизнеса',
+  'translation':    'Переводы',
+  'stores':         'Магазины',
+  'other':          'Прочее',
 };
 
 export const PROPERTY_TYPE_LABELS: Record<PropertyType, string> = {

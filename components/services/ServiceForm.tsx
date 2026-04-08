@@ -20,7 +20,7 @@ import { MAX_PHOTOS, ALLOWED_PHOTO_TYPES, MAX_PHOTO_SIZE_MB } from '@/lib/consta
 const serviceSchema = z.object({
   title: z.string().min(3, 'Минимум 3 символа').max(100, 'Максимум 100 символов'),
   description: z.string().min(10, 'Минимум 10 символов').max(5000, 'Максимум 5000 символов'),
-  category: z.enum(['plumbing', 'electrical', 'repair', 'cleaning', 'it', 'tutoring', 'beauty', 'legal', 'accounting', 'translation', 'moving', 'other']),
+  category: z.enum(['accounting', 'legal', 'realty', 'insurance', 'loans', 'medical', 'beauty', 'home-repair', 'plumbing', 'electrical', 'cleaning', 'auto', 'trucking', 'moving', 'it', 'education', 'childcare', 'elderly-care', 'events', 'media', 'entertainment', 'business-sales', 'translation', 'stores', 'other']),
   priceType: z.enum(['fixed', 'hourly', 'negotiable']),
   price: z.number().min(0).optional(),
   serviceArea: z.enum(['local', 'remote', 'both']),
