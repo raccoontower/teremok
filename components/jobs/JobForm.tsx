@@ -23,7 +23,7 @@ const jobSchema = z.object({
   title: z.string().min(3, 'Минимум 3 символа').max(100, 'Максимум 100 символов'),
   description: z.string().min(10, 'Минимум 10 символов').max(5000, 'Максимум 5000 символов'),
   jobType: z.enum(['full-time', 'part-time', 'contract', 'freelance', 'internship']),
-  category: z.enum(['it', 'construction', 'medical', 'trucking', 'sales', 'restaurant', 'cleaning', 'office', 'other']),
+  category: z.enum(['construction', 'hvac', 'nanny', 'beauty', 'restaurant', 'auto-repair', 'driving', 'trucking', 'warehouse', 'office', 'caregiver', 'retail', 'remote', 'dispatch', 'moving', 'student', 'medical', 'sales', 'education', 'it', 'telecom', 'sewing', 'events', 'cleaning', 'other']),
   salaryMin: z.number().min(0).optional(),
   salaryMax: z.number().min(0).optional(),
   salaryPeriod: z.enum(['hour', 'week', 'month', 'year']).optional(),

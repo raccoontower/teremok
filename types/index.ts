@@ -22,7 +22,32 @@ export interface ContactV2 {
 // ============================
 
 export type JobType = 'full-time' | 'part-time' | 'contract' | 'freelance' | 'internship';
-export type JobCategory = 'it' | 'construction' | 'medical' | 'trucking' | 'sales' | 'restaurant' | 'cleaning' | 'office' | 'other';
+export type JobCategory =
+  | 'construction'   // Строительство и ремонт
+  | 'hvac'           // Техники, Мастера, Монтаж (HVAC, Cable)
+  | 'nanny'          // Няни, уборка, домработницы
+  | 'beauty'         // Парикмахерские, салоны красоты, SPA
+  | 'restaurant'     // Рестораны и гостиницы
+  | 'auto-repair'    // Авторемонт и сервис
+  | 'driving'        // Водители
+  | 'trucking'       // Дальнобой, грузоперевозки
+  | 'warehouse'      // Склады, фабрики, производство
+  | 'office'         // Офисная работа
+  | 'caregiver'      // Сиделки, home attendants
+  | 'retail'         // Продавцы и кассиры
+  | 'remote'         // Удаленная работа
+  | 'dispatch'       // Диспетчеры и Логистика
+  | 'moving'         // Moving, грузчики
+  | 'student'        // Временная и для студентов
+  | 'medical'        // Медицина, аптеки
+  | 'sales'          // Менеджеры по продажам
+  | 'education'      // Образование и Тренеры
+  | 'it'             // IT, маркетинг и дизайн
+  | 'telecom'        // Телекоммуникации
+  | 'sewing'         // Швеи, Портные, Химчистки
+  | 'events'         // Event-индустрия, Фото, Видео
+  | 'cleaning'       // Уборка (commercial)
+  | 'other';         // Другие специальности
 export type SalaryPeriod = 'hour' | 'week' | 'month' | 'year';
 
 export interface Job {
@@ -149,15 +174,31 @@ export const JOB_TYPE_LABELS: Record<JobType, string> = {
 };
 
 export const JOB_CATEGORY_LABELS: Record<JobCategory, string> = {
-  'it': 'IT / Программирование',
-  'construction': 'Строительство',
-  'medical': 'Медицина',
-  'trucking': 'Транспорт / Дальнобой',
-  'sales': 'Торговля / Продажи',
-  'restaurant': 'Ресторанный бизнес',
-  'cleaning': 'Уборка',
-  'office': 'Офис / Администрация',
-  'other': 'Другое',
+  'construction': 'Строительство и ремонт',
+  'hvac':         'Техники, Мастера, Монтаж (HVAC, Cable)',
+  'nanny':        'Няни, уборка, домработницы',
+  'beauty':       'Парикмахерские, салоны красоты, SPA',
+  'restaurant':   'Рестораны и гостиницы',
+  'auto-repair':  'Авторемонт и сервис',
+  'driving':      'Водители',
+  'trucking':     'Дальнобой, грузоперевозки',
+  'warehouse':    'Склады, фабрики, производство',
+  'office':       'Офисная работа',
+  'caregiver':    'Сиделки, home attendants',
+  'retail':       'Продавцы и кассиры',
+  'remote':       'Удалённая работа',
+  'dispatch':     'Диспетчеры и Логистика',
+  'moving':       'Moving, грузчики',
+  'student':      'Временная и для студентов',
+  'medical':      'Медицина, аптеки',
+  'sales':        'Менеджеры по продажам',
+  'education':    'Образование и Тренеры',
+  'it':           'IT, маркетинг и дизайн',
+  'telecom':      'Телекоммуникации',
+  'sewing':       'Швеи, Портные, Химчистки',
+  'events':       'Event-индустрия, Фото, Видео',
+  'cleaning':     'Клининг (коммерческий)',
+  'other':        'Другие специальности',
 };
 
 export const SERVICE_CATEGORY_LABELS: Record<ServiceCategory, string> = {
