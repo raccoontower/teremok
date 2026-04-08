@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { Logo } from '@/components/layout/Logo';
 import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/Button';
 import { CitySelector } from '@/components/layout/CitySelector';
@@ -29,14 +30,7 @@ export function Header() {
         <div className="flex items-center justify-between h-[60px] gap-4">
 
           {/* Логотип — текст ВСЕГДА виден, не скрываем на мобайле */}
-          <Link
-            href={ROUTES.listings}
-            className="flex items-center gap-2 font-bold text-xl text-primary-600 hover:text-primary-700 transition-colors duration-150 shrink-0"
-          >
-            <span className="text-2xl leading-none">🏠</span>
-            {/* Убрали hidden sm:block — текст виден на всех экранах */}
-            <span>Теремок</span>
-          </Link>
+          <Logo />
 
           {/* Селектор города — между логотипом и кнопками */}
           <CitySelector />

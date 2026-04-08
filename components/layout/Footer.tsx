@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ROUTES } from '@/lib/constants/routes';
+import { Logo } from '@/components/layout/Logo';
 
 const currentYear = new Date().getFullYear();
 
@@ -10,8 +11,10 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Бренд */}
           <div className="col-span-2 md:col-span-1">
-            <div className="text-white font-bold text-xl mb-2">🏠 Teremok</div>
-            <p className="text-sm leading-relaxed">
+            <div className="mb-3 brightness-0 invert">
+              <Logo />
+            </div>
+            <p className="text-sm leading-relaxed mt-2">
               Русское сообщество в США — объявления, работа, жильё и услуги.
             </p>
           </div>
