@@ -1,48 +1,48 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { type QueryDocumentSnapshot } from 'firebase/firestore';
-import { getJobs, type JobFilters } from '@/lib/firebase/jobs';
 import type { Job } from '@/types';
+
+interface JobFilters {
+  cityId?: string;
+  listingType?: string;
+  category?: string;
+  jobType?: string;
+  limit?: number;
+}
 
 interface UseJobsReturn {
   jobs: Job[];
   loading: boolean;
   hasMore: boolean;
-  loadMore: () => Promise<void>;
+  loadMore: () => void;
   error: string | null;
 }
 
-const PAGE_SIZE = 20;
-
-/**
- * Хук для получения списка вакансий с пагинацией и фильтрами.
- * При изменении фильтров — сбрасывает состояние и загружает заново.
- */
 export function useJobs(filters: JobFilters = {}): UseJobsReturn {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot | null>(null);
 
-  // Сериализуем фильтры для корректного сравнения в useEffect
   const filtersKey = JSON.stringify(filters);
 
-  const fetchInitial = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    setJobs([]);
-    setLastDoc(null);
-
     try {
-      const result = await getJobs(filters);
-      setJobs(result.jobs);
-      setLastDoc(result.lastDoc);
-      setHasMore(result.jobs.length === PAGE_SIZE);
+      const params = new URLSearchParams();
+      if (filters.cityId) params.set('cityId', filters.cityId);
+      if (filters.listingType) params.set('listingType', filters.listingType);
+      if (filters.category) params.set('category', filters.category);
+      params.set('limit', String(filters.limit ?? 40));
+
+      const res = await fetch(`/api/jobs?${params}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json() as { jobs: Job[] };
+      setJobs(data.jobs ?? []);
     } catch (err) {
-      setError('Не удалось загрузить вакансии');
-      console.error(err);
+      console.error('[useJobs]', err);
+      setError('Не удалось загрузить вакансии. Попробуйте обновить страницу.');
     } finally {
       setLoading(false);
     }
@@ -50,29 +50,8 @@ export function useJobs(filters: JobFilters = {}): UseJobsReturn {
   }, [filtersKey]);
 
   useEffect(() => {
-    fetchInitial();
-  }, [fetchInitial]);
+    fetchData();
+  }, [fetchData]);
 
-  /**
-   * Загружает следующую страницу вакансий.
-   */
-  const loadMore = useCallback(async () => {
-    if (!hasMore || loading || !lastDoc) return;
-
-    setLoading(true);
-    try {
-      const result = await getJobs(filters, lastDoc);
-      setJobs((prev) => [...prev, ...result.jobs]);
-      setLastDoc(result.lastDoc);
-      setHasMore(result.jobs.length === PAGE_SIZE);
-    } catch (err) {
-      setError('Не удалось загрузить вакансии');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasMore, loading, lastDoc]);
-
-  return { jobs, loading, hasMore, loadMore, error };
+  return { jobs, loading, hasMore: false, loadMore: () => {}, error };
 }

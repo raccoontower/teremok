@@ -1,47 +1,39 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { type QueryDocumentSnapshot } from 'firebase/firestore';
-import { getListings } from '@/lib/firebase/firestore';
 import type { Listing, ListingFilters } from '@/types';
-import { LISTINGS_PER_PAGE } from '@/lib/constants/limits';
 
 interface UseListingsReturn {
   listings: Listing[];
   loading: boolean;
   hasMore: boolean;
-  loadMore: () => Promise<void>;
+  loadMore: () => void;
   error: string | null;
 }
 
-/**
- * Хук для получения списка объявлений с пагинацией через cursor (startAfter).
- * При изменении фильтров сбрасывает состояние и загружает заново.
- */
 export function useListings(filters: ListingFilters = {}): UseListingsReturn {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot | null>(null);
 
-  // Сериализуем фильтры для корректного сравнения в useEffect
   const filtersKey = JSON.stringify(filters);
 
-  const fetchInitial = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    setListings([]);
-    setLastDoc(null);
-
     try {
-      const result = await getListings(filters);
-      setListings(result.listings);
-      setLastDoc(result.lastDoc);
-      setHasMore(result.listings.length === LISTINGS_PER_PAGE);
+      const params = new URLSearchParams();
+      if (filters.cityId) params.set('cityId', filters.cityId);
+      if (filters.categoryId) params.set('categoryId', filters.categoryId);
+      params.set('limit', '40');
+
+      const res = await fetch(`/api/listings?${params}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json() as { listings: Listing[] };
+      setListings(data.listings ?? []);
     } catch (err) {
-      setError('Не удалось загрузить объявления');
-      console.error(err);
+      console.error('[useListings]', err);
+      setError('Не удалось загрузить объявления. Попробуйте обновить страницу.');
     } finally {
       setLoading(false);
     }
@@ -49,29 +41,8 @@ export function useListings(filters: ListingFilters = {}): UseListingsReturn {
   }, [filtersKey]);
 
   useEffect(() => {
-    fetchInitial();
-  }, [fetchInitial]);
+    fetchData();
+  }, [fetchData]);
 
-  /**
-   * Загружает следующую страницу объявлений
-   */
-  const loadMore = useCallback(async () => {
-    if (!hasMore || loading || !lastDoc) return;
-
-    setLoading(true);
-    try {
-      const result = await getListings(filters, lastDoc);
-      setListings((prev) => [...prev, ...result.listings]);
-      setLastDoc(result.lastDoc);
-      setHasMore(result.listings.length === LISTINGS_PER_PAGE);
-    } catch (err) {
-      setError('Не удалось загрузить объявления');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasMore, loading, lastDoc]);
-
-  return { listings, loading, hasMore, loadMore, error };
+  return { listings, loading, hasMore: false, loadMore: () => {}, error };
 }

@@ -1,46 +1,46 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { type QueryDocumentSnapshot } from 'firebase/firestore';
-import { getServices, type ServiceFilters } from '@/lib/firebase/services';
 import type { Service } from '@/types';
+
+interface ServiceFilters {
+  cityId?: string;
+  category?: string;
+  serviceArea?: string;
+  limit?: number;
+}
 
 interface UseServicesReturn {
   services: Service[];
   loading: boolean;
   hasMore: boolean;
-  loadMore: () => Promise<void>;
+  loadMore: () => void;
   error: string | null;
 }
 
-const PAGE_SIZE = 20;
-
-/**
- * Хук для получения списка услуг с пагинацией и фильтрами.
- */
 export function useServices(filters: ServiceFilters = {}): UseServicesReturn {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot | null>(null);
 
   const filtersKey = JSON.stringify(filters);
 
-  const fetchInitial = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    setServices([]);
-    setLastDoc(null);
-
     try {
-      const result = await getServices(filters);
-      setServices(result.services);
-      setLastDoc(result.lastDoc);
-      setHasMore(result.services.length === PAGE_SIZE);
+      const params = new URLSearchParams();
+      if (filters.cityId) params.set('cityId', filters.cityId);
+      if (filters.category) params.set('category', filters.category);
+      params.set('limit', String(filters.limit ?? 40));
+
+      const res = await fetch(`/api/services?${params}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json() as { services: Service[] };
+      setServices(data.services ?? []);
     } catch (err) {
-      setError('Не удалось загрузить услуги');
-      console.error(err);
+      console.error('[useServices]', err);
+      setError('Не удалось загрузить услуги. Попробуйте обновить страницу.');
     } finally {
       setLoading(false);
     }
@@ -48,26 +48,8 @@ export function useServices(filters: ServiceFilters = {}): UseServicesReturn {
   }, [filtersKey]);
 
   useEffect(() => {
-    fetchInitial();
-  }, [fetchInitial]);
+    fetchData();
+  }, [fetchData]);
 
-  const loadMore = useCallback(async () => {
-    if (!hasMore || loading || !lastDoc) return;
-
-    setLoading(true);
-    try {
-      const result = await getServices(filters, lastDoc);
-      setServices((prev) => [...prev, ...result.services]);
-      setLastDoc(result.lastDoc);
-      setHasMore(result.services.length === PAGE_SIZE);
-    } catch (err) {
-      setError('Не удалось загрузить услуги');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasMore, loading, lastDoc]);
-
-  return { services, loading, hasMore, loadMore, error };
+  return { services, loading, hasMore: false, loadMore: () => {}, error };
 }
