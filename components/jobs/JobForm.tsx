@@ -18,8 +18,9 @@ import {
 } from '@/types';
 import { useState } from 'react';
 
-// Схема валидации формы вакансии
+// Схема валидации формы вакансии/резюме
 const jobSchema = z.object({
+  listingType: z.enum(['vacancy', 'resume']),
   title: z.string().min(3, 'Минимум 3 символа').max(100, 'Максимум 100 символов'),
   description: z.string().min(10, 'Минимум 10 символов').max(5000, 'Максимум 5000 символов'),
   jobType: z.enum(['full-time', 'part-time', 'contract', 'freelance', 'internship']),
@@ -45,7 +46,7 @@ const jobSchema = z.object({
 type JobFormData = z.infer<typeof jobSchema>;
 
 /**
- * Форма создания вакансии.
+ * Форма создания вакансии или резюме.
  */
 export function JobForm() {
   const router = useRouter();
@@ -58,15 +59,19 @@ export function JobForm() {
     handleSubmit,
     control,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<JobFormData>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
+      listingType: 'vacancy',
       salaryNegotiable: false,
     },
   });
 
+  const listingType = watch('listingType');
   const salaryNegotiable = watch('salaryNegotiable');
+  const isResume = listingType === 'resume';
 
   const onSubmit = async (data: JobFormData) => {
     if (!user) return;
@@ -75,6 +80,7 @@ export function JobForm() {
     try {
       const jobId = await createJob(
         {
+          listingType: data.listingType,
           title: data.title,
           description: data.description,
           jobType: data.jobType,
@@ -101,16 +107,48 @@ export function JobForm() {
       router.push(`/jobs/${jobId}`);
     } catch (err) {
       console.error(err);
-      setServerError('Не удалось сохранить вакансию. Попробуйте ещё раз.');
+      setServerError('Не удалось сохранить объявление. Попробуйте ещё раз.');
     }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white rounded-xl border border-gray-200 p-6">
+
+      {/* Тип объявления: Вакансия / Резюме */}
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-gray-700">Я ищу:</p>
+        <div className="flex gap-3 flex-col sm:flex-row">
+          <button
+            type="button"
+            onClick={() => setValue('listingType', 'vacancy')}
+            className={[
+              'flex-1 min-h-[52px] rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-colors duration-150 text-left',
+              !isResume
+                ? 'bg-primary-600 border-primary-600 text-white'
+                : 'bg-white border-primary-600 text-primary-600 hover:bg-primary-50',
+            ].join(' ')}
+          >
+            👔 Сотрудников — разместить вакансию
+          </button>
+          <button
+            type="button"
+            onClick={() => setValue('listingType', 'resume')}
+            className={[
+              'flex-1 min-h-[52px] rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-colors duration-150 text-left',
+              isResume
+                ? 'bg-primary-600 border-primary-600 text-white'
+                : 'bg-white border-primary-600 text-primary-600 hover:bg-primary-50',
+            ].join(' ')}
+          >
+            💼 Работу — разместить резюме
+          </button>
+        </div>
+      </div>
+
       {/* Заголовок */}
       <Input
-        label="Название вакансии *"
-        placeholder="Например: Frontend Developer"
+        label={isResume ? 'Желаемая должность *' : 'Название вакансии *'}
+        placeholder={isResume ? 'Например: Frontend Developer' : 'Например: Frontend Developer'}
         error={errors.title?.message}
         {...register('title')}
       />
@@ -121,8 +159,12 @@ export function JobForm() {
         control={control}
         render={({ field }) => (
           <Textarea
-            label="Описание *"
-            placeholder="Опишите обязанности, условия работы..."
+            label={isResume ? 'О себе *' : 'Описание вакансии *'}
+            placeholder={
+              isResume
+                ? 'Расскажите о себе, своём опыте и целях...'
+                : 'Опишите обязанности, условия работы...'
+            }
             rows={5}
             error={errors.description?.message}
             {...field}
@@ -161,9 +203,12 @@ export function JobForm() {
         />
       </div>
 
-      {/* Зарплата */}
+      {/* Зарплата — для резюме необязательная, для вакансии обычная */}
       <div className="space-y-3">
-        <label className="block text-sm font-medium text-gray-700">Зарплата</label>
+        <label className="block text-sm font-medium text-gray-700">
+          {isResume ? 'Ожидаемая зарплата' : 'Зарплата'}
+          {isResume && <span className="ml-1 text-gray-400 font-normal">(необязательно)</span>}
+        </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -235,14 +280,18 @@ export function JobForm() {
         )}
       />
 
-      {/* Требования */}
+      {/* Требования / Навыки */}
       <Controller
         name="requirements"
         control={control}
         render={({ field }) => (
           <Textarea
-            label="Требования к кандидату"
-            placeholder="Опыт работы, навыки, образование..."
+            label={isResume ? 'Навыки и опыт' : 'Требования к кандидату'}
+            placeholder={
+              isResume
+                ? 'Ключевые навыки, опыт работы, образование...'
+                : 'Опыт работы, навыки, образование...'
+            }
             rows={3}
             error={errors.requirements?.message}
             {...field}
@@ -255,7 +304,7 @@ export function JobForm() {
         <p className="text-sm font-medium text-gray-700">Контактная информация</p>
         <Input
           label="Имя контактного лица *"
-          placeholder="Имя или название компании"
+          placeholder={isResume ? 'Ваше имя' : 'Имя или название компании'}
           error={errors.contact?.name?.message}
           {...register('contact.name')}
         />
@@ -293,7 +342,11 @@ export function JobForm() {
       )}
 
       <Button type="submit" variant="primary" size="lg" fullWidth loading={isSubmitting}>
-        {isSubmitting ? 'Публикуем...' : 'Опубликовать вакансию'}
+        {isSubmitting
+          ? 'Публикуем...'
+          : isResume
+            ? 'Опубликовать резюме'
+            : 'Опубликовать вакансию'}
       </Button>
     </form>
   );

@@ -50,8 +50,11 @@ export type JobCategory =
   | 'other';         // Другие специальности
 export type SalaryPeriod = 'hour' | 'week' | 'month' | 'year';
 
+export type JobListingType = 'vacancy' | 'resume';
+
 export interface Job {
   id: string;
+  listingType: JobListingType;
   title: string;
   description: string;
   jobType: JobType;
@@ -164,6 +167,11 @@ export interface Service {
 // ============================
 // Лейблы для UI
 // ============================
+
+export const JOB_LISTING_TYPE_LABELS: Record<JobListingType, string> = {
+  vacancy: 'Вакансия',
+  resume: 'Резюме',
+} as const;
 
 export const JOB_TYPE_LABELS: Record<JobType, string> = {
   'full-time': 'Полная занятость',

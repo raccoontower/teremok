@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Job } from '@/types';
-import { JOB_TYPE_LABELS, JOB_CATEGORY_LABELS, SALARY_PERIOD_LABELS } from '@/types';
+import { JOB_LISTING_TYPE_LABELS, JOB_TYPE_LABELS, JOB_CATEGORY_LABELS, SALARY_PERIOD_LABELS } from '@/types';
 import { Badge } from '@/components/ui/Badge';
 import { formatDateShort } from '@/lib/utils/formatDate';
 import { cn } from '@/lib/utils/cn';
@@ -51,7 +51,7 @@ function formatSalary(job: Job): string {
 }
 
 export function JobCard({ job, className }: JobCardProps) {
-  const { id, title, jobType, category, cityId, createdAt, isPremium } = job;
+  const { id, title, jobType, category, cityId, createdAt, isPremium, listingType } = job;
   const formattedDate = createdAt ? formatDateShort(createdAt) : '';
   const salary = formatSalary(job);
 
@@ -71,6 +71,11 @@ export function JobCard({ job, className }: JobCardProps) {
       <div className="p-4">
         {/* Верхняя строка: бейджи типа и категории */}
         <div className="flex items-center gap-2 flex-wrap mb-2.5">
+          {listingType && (
+            <Badge variant={listingType === 'resume' ? 'success' : 'info'}>
+              {JOB_LISTING_TYPE_LABELS[listingType]}
+            </Badge>
+          )}
           <Badge variant="info">{JOB_TYPE_LABELS[jobType]}</Badge>
           <Badge variant="default">{JOB_CATEGORY_LABELS[category]}</Badge>
           {isPremium && <Badge variant="warning">⭐ Premium</Badge>}

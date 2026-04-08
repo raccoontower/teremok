@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils/cn';
 import { Container } from '@/components/layout/Container';
+import { useCityContext } from '@/contexts/CityContext';
 
 // Основные табы навигации
 const TABS = [
@@ -27,8 +28,13 @@ const MORE_ITEMS = [
  */
 export function MainNav() {
   const pathname = usePathname();
+  const { selectedCity } = useCityContext();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+
+  // Формируем href с сохранением города
+  const withCity = (href: string) =>
+    selectedCity ? `${href}?city=${selectedCity}` : href;
 
   // Закрываем дропдаун при клике вне
   useEffect(() => {
@@ -57,7 +63,7 @@ export function MainNav() {
             return (
               <Link
                 key={tab.href}
-                href={tab.href}
+                href={withCity(tab.href)}
                 className={cn(
                   // Базовые стили таба
                   'shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors duration-150 whitespace-nowrap',

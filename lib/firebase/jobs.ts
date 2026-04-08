@@ -4,7 +4,7 @@ import {
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
-import type { Job, JobCategory, JobType, SectionStatus } from '@/types';
+import type { Job, JobCategory, JobListingType, JobType, SectionStatus } from '@/types';
 import type { User } from 'firebase/auth';
 
 const JOBS_PER_PAGE = 20;
@@ -13,6 +13,7 @@ export interface JobFilters {
   cityId?: string;
   category?: JobCategory;
   jobType?: JobType;
+  listingType?: JobListingType;
   limit?: number;
 }
 
@@ -35,6 +36,7 @@ export async function getJobs(
   if (filters.cityId) jobs = jobs.filter(j => j.cityId === filters.cityId);
   if (filters.category) jobs = jobs.filter(j => j.category === filters.category);
   if (filters.jobType) jobs = jobs.filter(j => j.jobType === filters.jobType);
+  if (filters.listingType) jobs = jobs.filter(j => j.listingType === filters.listingType);
 
   const newLastDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
   return { jobs, lastDoc: newLastDoc };
