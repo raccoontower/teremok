@@ -46,7 +46,7 @@ export async function getServices(
     ...(filters.category ? [where('category', '==', filters.category)] : []),
     ...(filters.serviceArea ? [where('serviceArea', '==', filters.serviceArea)] : []),
     // Premium сверху, затем по дате
-    orderBy('isPremium', 'desc'),
+    // orderBy('isPremium', 'desc'), // включить после монетизации
     orderBy('createdAt', 'desc'),
     limit(pageSize),
     ...(lastDoc ? [startAfter(lastDoc)] : []),

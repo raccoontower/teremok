@@ -49,8 +49,7 @@ export async function getHousingListings(
     ...(filters.propertyType ? [where('propertyType', '==', filters.propertyType)] : []),
     ...(filters.bedrooms !== undefined ? [where('bedrooms', '==', filters.bedrooms)] : []),
     ...(filters.petFriendly !== undefined ? [where('petFriendly', '==', filters.petFriendly)] : []),
-    // Premium сверху, затем по дате
-    orderBy('isPremium', 'desc'),
+    // Сортировка по дате (isPremium добавим когда появится монетизация)
     orderBy('createdAt', 'desc'),
     limit(pageSize),
     ...(lastDoc ? [startAfter(lastDoc)] : []),

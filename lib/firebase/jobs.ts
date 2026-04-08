@@ -45,8 +45,7 @@ export async function getJobs(
     ...(filters.cityId ? [where('cityId', '==', filters.cityId)] : []),
     ...(filters.category ? [where('category', '==', filters.category)] : []),
     ...(filters.jobType ? [where('jobType', '==', filters.jobType)] : []),
-    // Premium сверху, затем по дате создания
-    orderBy('isPremium', 'desc'),
+    // Сортировка по дате (isPremium добавим когда появится монетизация)
     orderBy('createdAt', 'desc'),
     limit(pageSize),
     ...(lastDoc ? [startAfter(lastDoc)] : []),
