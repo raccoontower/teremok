@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useListing } from '@/hooks/useListing';
 import { Container } from '@/components/layout/Container';
-import { ContactButtons } from '@/components/listings/ContactButtons';
+import { ContactButtons } from '@/components/shared/ContactButtons';
+import { ReportButton } from '@/components/shared/ReportButton';
 import { StatusBadge } from '@/components/ui/Badge';
 import { FullScreenSpinner } from '@/components/ui/Spinner';
 import { formatPrice } from '@/lib/utils/formatPrice';
@@ -131,9 +132,20 @@ export function ListingDetailClient({ id }: ListingDetailClientProps) {
 
           {/* Контакты */}
           <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <h2 className="font-semibold text-gray-900 mb-3">Связаться с продавцом</h2>
+            <h2 className="font-semibold text-gray-900 mb-3">Связаться с автором</h2>
             <p className="text-sm text-gray-500 mb-3">{listing.authorName}</p>
-            <ContactButtons contact={listing.contact} title={listing.title} />
+            <ContactButtons contact={listing.contact} />
+
+            {/* Совет безопасности */}
+            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+              <p className="font-semibold mb-1">⚠️ Совет безопасности</p>
+              <p>Встречайтесь лично, не платите вперёд. <a href="/safety" className="underline">Подробнее о безопасности →</a></p>
+            </div>
+
+            {/* Жалоба */}
+            <div className="flex justify-end mt-3">
+              <ReportButton itemId={listing.id} itemType="listing" itemTitle={listing.title} />
+            </div>
           </div>
         </div>
       </div>

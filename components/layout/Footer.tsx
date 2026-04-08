@@ -57,6 +57,7 @@ export function Footer() {
               <li><Link href="/blog" className="hover:text-white transition-colors">Блог</Link></li>
               <li><Link href="/about" className="hover:text-white transition-colors">О нас</Link></li>
               <li><Link href="/contact" className="hover:text-white transition-colors">Контакты</Link></li>
+              <li><Link href="/safety" className="hover:text-white transition-colors">Безопасность</Link></li>
               <li>
                 <a href="/feed.xml" className="hover:text-white transition-colors">
                   RSS

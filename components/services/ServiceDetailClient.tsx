@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/Button';
 import { FullScreenSpinner } from '@/components/ui/Spinner';
 import { SERVICE_CATEGORY_LABELS, SERVICE_AREA_LABELS } from '@/types';
 import { formatDate } from '@/lib/utils/formatDate';
-import { buildPhoneLink, buildWhatsAppLink, buildTelegramLink } from '@/lib/utils/formatContact';
+import { ContactButtons } from '@/components/shared/ContactButtons';
+import { ReportButton } from '@/components/shared/ReportButton';
 
 interface ServiceDetailClientProps {
   id: string;
@@ -141,31 +142,21 @@ export function ServiceDetailClient({ id }: ServiceDetailClientProps) {
           </div>
 
           {/* Контакты */}
-          <div className="space-y-2">
-            <h2 className="text-base font-semibold text-neutral-800">Контакты</h2>
-            <p className="text-sm text-neutral-600">{contact.name}</p>
-            <div className="flex flex-col gap-2">
-              {contact.phone && (
-                <a href={buildPhoneLink(contact.phone)}>
-                  <Button variant="primary" size="lg" fullWidth>📞 Позвонить</Button>
-                </a>
-              )}
-              {contact.whatsapp && (
-                <a href={buildWhatsAppLink(contact.whatsapp, `Здравствуйте! Интересует услуга "${service.title}"`)} target="_blank" rel="noopener noreferrer">
-                  <Button variant="secondary" size="lg" fullWidth className="border-green-500 text-green-700 hover:bg-green-50">WhatsApp</Button>
-                </a>
-              )}
-              {contact.telegram && (
-                <a href={buildTelegramLink(contact.telegram)} target="_blank" rel="noopener noreferrer">
-                  <Button variant="secondary" size="lg" fullWidth className="border-blue-400 text-blue-600 hover:bg-blue-50">Telegram</Button>
-                </a>
-              )}
-              {contact.email && (
-                <a href={`mailto:${contact.email}`}>
-                  <Button variant="secondary" size="lg" fullWidth>✉️ Email</Button>
-                </a>
-              )}
+          <div className="space-y-3">
+            <h2 className="text-base font-semibold text-neutral-800">Связаться с автором</h2>
+            {contact.name && <p className="text-sm text-neutral-600">{contact.name}</p>}
+            <ContactButtons contact={contact} />
+
+            {/* Совет безопасности */}
+            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+              <p className="font-semibold mb-1">⚠️ Совет безопасности</p>
+              <p>Встречайтесь лично, не платите вперёд. <a href="/safety" className="underline">Подробнее о безопасности →</a></p>
             </div>
+          </div>
+
+          {/* Жалоба */}
+          <div className="flex justify-end pt-2">
+            <ReportButton itemId={service.id} itemType="service" itemTitle={service.title} />
           </div>
         </div>
       </div>
