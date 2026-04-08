@@ -21,27 +21,23 @@ export function ListingsClientPage() {
     categoryId: categoryId || undefined,
   });
 
+  // Конвертируем createdAt в миллисекунды — поддерживаем ISO строку и Firestore Timestamp
+  const toMs = (ts: unknown): number => {
+    if (!ts) return 0;
+    if (typeof ts === 'string') return new Date(ts).getTime();
+    if (typeof ts === 'object' && ts !== null) {
+      if ('toMillis' in ts && typeof (ts as {toMillis: () => number}).toMillis === 'function') return (ts as {toMillis: () => number}).toMillis();
+      if ('seconds' in ts) return (ts as {seconds: number}).seconds * 1000;
+    }
+    return 0;
+  };
+
   const sortedListings = useMemo<Listing[]>(() => {
     const copy = [...listings];
-    if (sort === 'oldest') {
-      return copy.sort((a, b) => {
-        const aTime = a.createdAt?.toMillis() ?? 0;
-        const bTime = b.createdAt?.toMillis() ?? 0;
-        return aTime - bTime;
-      });
-    }
-    if (sort === 'price_asc') {
-      return copy.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
-    }
-    if (sort === 'price_desc') {
-      return copy.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
-    }
-    // default: newest first (already ordered from Firestore)
-    return copy.sort((a, b) => {
-      const aTime = a.createdAt?.toMillis() ?? 0;
-      const bTime = b.createdAt?.toMillis() ?? 0;
-      return bTime - aTime;
-    });
+    if (sort === 'oldest') return copy.sort((a, b) => toMs(a.createdAt) - toMs(b.createdAt));
+    if (sort === 'price_asc') return copy.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+    if (sort === 'price_desc') return copy.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+    return copy.sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt));
   }, [listings, sort]);
 
   return (
