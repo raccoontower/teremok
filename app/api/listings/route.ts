@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/firebase/admin';
+import { serializeDoc } from '@/lib/firebase/serialize';
 
 export const runtime = 'nodejs';
 
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
     const ref = db.collection('listings');
     const snap = await ref.orderBy('createdAt', 'desc').limit(limitN).get();
 
-    let docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    let docs = snap.docs.map((d) => serializeDoc({ id: d.id, ...d.data() }));
 
     // Фильтрация
     docs = docs.filter((d: Record<string, unknown>) => d.status === 'active');

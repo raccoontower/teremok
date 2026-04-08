@@ -3,10 +3,6 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getListings } from '@/lib/firebase/firestore';
-import { getJobs } from '@/lib/firebase/jobs';
-import { getHousingListings } from '@/lib/firebase/housing';
-import { getServices } from '@/lib/firebase/services';
 import type { Listing, Job, Housing, Service } from '@/types';
 
 type ResultType = 'listing' | 'job' | 'housing' | 'service';
@@ -93,12 +89,16 @@ function SearchPageInner() {
       try {
         const lower = q.toLowerCase();
 
-        const [listingsRes, jobsRes, housingRes, servicesRes] = await Promise.all([
-          getListings({ status: 'active' }).catch(() => ({ listings: [] as Listing[], lastDoc: null })),
-          getJobs({}).catch(() => ({ jobs: [] as Job[], lastDoc: null })),
-          getHousingListings({}).catch(() => ({ listings: [] as Housing[], lastDoc: null })),
-          getServices({}).catch(() => ({ services: [] as Service[], lastDoc: null })),
+        const [listingsData, jobsData, housingData, servicesData] = await Promise.all([
+          fetch('/api/listings?limit=100').then(r => r.json()).catch(() => ({ listings: [] })),
+          fetch('/api/jobs?limit=100').then(r => r.json()).catch(() => ({ jobs: [] })),
+          fetch('/api/housing?limit=100').then(r => r.json()).catch(() => ({ listings: [] })),
+          fetch('/api/services?limit=100').then(r => r.json()).catch(() => ({ services: [] })),
         ]);
+        const listingsRes = { listings: (listingsData.listings ?? []) as Listing[] };
+        const jobsRes = { jobs: (jobsData.jobs ?? []) as Job[] };
+        const housingRes = { listings: (housingData.listings ?? []) as Housing[] };
+        const servicesRes = { services: (servicesData.services ?? []) as Service[] };
 
         const matched: SearchResult[] = [];
 

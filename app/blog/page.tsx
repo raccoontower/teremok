@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getPosts } from '@/lib/firebase/blog';
 import type { BlogPost } from '@/types';
-import { Timestamp } from 'firebase/firestore';
 
-function formatDate(ts: Timestamp | undefined): string {
+function formatDate(ts: string | undefined): string {
   if (!ts) return '';
-  const date = ts.toDate ? ts.toDate() : new Date(ts as unknown as number);
-  return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  try {
+    return new Date(ts).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  } catch {
+    return '';
+  }
 }
 
 function SkeletonCard() {
@@ -29,8 +30,10 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getPosts()
-      .then(setPosts)
+    fetch('/api/blog')
+      .then((r) => r.json())
+      .then((d: { posts?: BlogPost[] }) => setPosts(d.posts ?? []))
+      .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
@@ -71,7 +74,7 @@ export default function BlogPage() {
                     {post.category}
                   </span>
                   <span className="text-neutral-400 text-sm">
-                    {formatDate(post.publishedAt)}
+                    {formatDate(post.publishedAt as unknown as string)}
                   </span>
                 </div>
                 <h2 className="text-xl font-semibold text-neutral-900 mb-2">
