@@ -6,6 +6,7 @@ import {
 import { db } from '@/lib/firebase/config';
 import type { Job, JobCategory, JobListingType, JobType, SectionStatus } from '@/types';
 import type { User } from 'firebase/auth';
+import { withTimeout } from '@/lib/firebase/utils';
 
 const JOBS_PER_PAGE = 20;
 
@@ -28,7 +29,7 @@ export async function getJobs(
     limit((filters.limit ?? JOBS_PER_PAGE) * 2),
     ...(lastDoc ? [startAfter(lastDoc)] : [])
   );
-  const snapshot = await getDocs(q);
+  const snapshot = await withTimeout(getDocs(q));
 
   let jobs: Job[] = snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as Job[];
   // Фильтрация на клиенте

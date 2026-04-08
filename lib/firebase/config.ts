@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -15,6 +15,18 @@ const firebaseConfig = {
 // Инициализируем приложение только один раз (важно для Next.js)
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 
+// Инициализируем Firestore с long-polling для лучшей совместимости с iOS Safari
+// (WebSocket иногда зависает на мобильных браузерах)
+let db: ReturnType<typeof getFirestore>;
+try {
+  db = initializeFirestore(app, {
+    experimentalForceLongPolling: true,
+  });
+} catch {
+  // Если уже инициализирован (например, HMR в dev), берём существующий
+  db = getFirestore(app);
+}
+
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+export { db };
 export const storage = getStorage(app);

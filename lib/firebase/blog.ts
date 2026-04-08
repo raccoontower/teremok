@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import type { BlogPost } from '@/types';
+import { withTimeout } from '@/lib/firebase/utils';
 
 const POSTS_COLLECTION = 'posts';
 
@@ -21,7 +22,7 @@ const POSTS_COLLECTION = 'posts';
 export async function getPosts(): Promise<BlogPost[]> {
   const ref = collection(db, POSTS_COLLECTION);
   const q = query(ref, orderBy('publishedAt', 'desc'));
-  const snapshot = await getDocs(q);
+  const snapshot = await withTimeout(getDocs(q));
 
   const posts = snapshot.docs.map((d) => ({
     id: d.id,
@@ -38,7 +39,7 @@ export async function getPosts(): Promise<BlogPost[]> {
 export async function getPost(slug: string): Promise<BlogPost | null> {
   const ref = collection(db, POSTS_COLLECTION);
   const q = query(ref, where('slug', '==', slug));
-  const snapshot = await getDocs(q);
+  const snapshot = await withTimeout(getDocs(q));
 
   if (snapshot.empty) return null;
 

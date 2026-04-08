@@ -17,6 +17,7 @@ import {
 import { db } from '@/lib/firebase/config';
 import type { Listing, Category, City, ListingFilters, CreateListingData, UpdateListingData } from '@/types';
 import { LISTINGS_PER_PAGE } from '@/lib/constants/limits';
+import { withTimeout } from '@/lib/firebase/utils';
 
 // --- Листинги ---
 
@@ -34,7 +35,7 @@ export async function getListings(
     ...(lastDoc ? [startAfter(lastDoc)] : [])
   );
 
-  const snapshot = await getDocs(q);
+  const snapshot = await withTimeout(getDocs(q));
 
   let listings: Listing[] = snapshot.docs.map((d) => ({
     id: d.id,
@@ -100,7 +101,7 @@ export async function getUserListings(
     limit(LISTINGS_PER_PAGE),
     ...(lastDoc ? [startAfter(lastDoc)] : [])
   );
-  const snapshot = await getDocs(q);
+  const snapshot = await withTimeout(getDocs(q));
   const listings: Listing[] = snapshot.docs
     .map((d) => ({ id: d.id, ...d.data() } as Listing))
     .filter(l => l.status !== 'deleted');
@@ -111,7 +112,7 @@ export async function getUserListings(
 // --- Категории ---
 
 export async function getCategories(): Promise<Category[]> {
-  const snapshot = await getDocs(collection(db, 'categories'));
+  const snapshot = await withTimeout(getDocs(collection(db, 'categories')));
   return snapshot.docs
     .map((d) => ({ ...d.data(), slug: d.id } as Category))
     .filter(c => c.isActive)
@@ -121,7 +122,7 @@ export async function getCategories(): Promise<Category[]> {
 // --- Города ---
 
 export async function getCities(): Promise<City[]> {
-  const snapshot = await getDocs(collection(db, 'cities'));
+  const snapshot = await withTimeout(getDocs(collection(db, 'cities')));
   return snapshot.docs
     .map((d) => ({ ...d.data(), slug: d.id } as City))
     .filter(c => c.isActive)

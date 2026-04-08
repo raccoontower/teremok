@@ -6,6 +6,7 @@ import {
 import { db } from '@/lib/firebase/config';
 import type { Service, ServiceCategory, ServiceArea, SectionStatus } from '@/types';
 import type { User } from 'firebase/auth';
+import { withTimeout } from '@/lib/firebase/utils';
 
 const PER_PAGE = 20;
 
@@ -27,7 +28,7 @@ export async function getServices(
     limit((filters.limit ?? PER_PAGE) * 2),
     ...(lastDoc ? [startAfter(lastDoc)] : [])
   );
-  const snapshot = await getDocs(q);
+  const snapshot = await withTimeout(getDocs(q));
 
   let services: Service[] = snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as Service[];
   services = services.filter(s => s.status === 'active');

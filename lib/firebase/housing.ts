@@ -6,6 +6,7 @@ import {
 import { db } from '@/lib/firebase/config';
 import type { Housing, HousingListingType, PropertyType, BedroomsCount, SectionStatus } from '@/types';
 import type { User } from 'firebase/auth';
+import { withTimeout } from '@/lib/firebase/utils';
 
 const PER_PAGE = 20;
 
@@ -29,7 +30,7 @@ export async function getHousingListings(
     limit((filters.limit ?? PER_PAGE) * 2),
     ...(lastDoc ? [startAfter(lastDoc)] : [])
   );
-  const snapshot = await getDocs(q);
+  const snapshot = await withTimeout(getDocs(q));
 
   let listings: Housing[] = snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as Housing[];
   listings = listings.filter(h => h.status === 'active');
