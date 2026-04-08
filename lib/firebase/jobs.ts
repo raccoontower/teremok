@@ -1,17 +1,6 @@
 import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  query,
-  where,
-  orderBy,
-  limit,
-  startAfter,
-  serverTimestamp,
-  increment,
+  collection, doc, getDoc, getDocs, addDoc, updateDoc,
+  query, orderBy, limit, startAfter, serverTimestamp, increment,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
@@ -19,9 +8,7 @@ import type { Job, JobCategory, JobType, SectionStatus } from '@/types';
 import type { User } from 'firebase/auth';
 
 const JOBS_PER_PAGE = 20;
-const COLLECTION = 'jobs';
 
-// Фильтры для getJobs
 export interface JobFilters {
   cityId?: string;
   category?: JobCategory;
@@ -29,75 +16,46 @@ export interface JobFilters {
   limit?: number;
 }
 
-/**
- * Получить список вакансий с фильтрами и пагинацией.
- * Premium вакансии идут первыми, затем сортировка по дате.
- */
 export async function getJobs(
   filters: JobFilters = {},
   lastDoc?: QueryDocumentSnapshot
 ): Promise<{ jobs: Job[]; lastDoc: QueryDocumentSnapshot | null }> {
-  const ref = collection(db, COLLECTION);
-  const pageSize = filters.limit ?? JOBS_PER_PAGE;
-
-  const constraints = [
-    where('status', '==', 'active' as SectionStatus),
-    ...(filters.cityId ? [where('cityId', '==', filters.cityId)] : []),
-    ...(filters.category ? [where('category', '==', filters.category)] : []),
-    ...(filters.jobType ? [where('jobType', '==', filters.jobType)] : []),
-    // Сортировка по дате (isPremium добавим когда появится монетизация)
+  const ref = collection(db, 'jobs');
+  const q = query(
+    ref,
     orderBy('createdAt', 'desc'),
-    limit(pageSize),
-    ...(lastDoc ? [startAfter(lastDoc)] : []),
-  ];
-
-  const q = query(ref, ...constraints);
+    limit((filters.limit ?? JOBS_PER_PAGE) * 2),
+    ...(lastDoc ? [startAfter(lastDoc)] : [])
+  );
   const snapshot = await getDocs(q);
 
-  const jobs: Job[] = snapshot.docs.map((d) => ({
-    id: d.id,
-    ...d.data(),
-  })) as Job[];
+  let jobs: Job[] = snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as Job[];
+  // Фильтрация на клиенте
+  jobs = jobs.filter(j => j.status === 'active');
+  if (filters.cityId) jobs = jobs.filter(j => j.cityId === filters.cityId);
+  if (filters.category) jobs = jobs.filter(j => j.category === filters.category);
+  if (filters.jobType) jobs = jobs.filter(j => j.jobType === filters.jobType);
 
-  const newLastDoc = snapshot.docs.length > 0
-    ? snapshot.docs[snapshot.docs.length - 1]
-    : null;
-
+  const newLastDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
   return { jobs, lastDoc: newLastDoc };
 }
 
-/**
- * Получить одну вакансию по ID и увеличить счётчик просмотров.
- */
 export async function getJob(id: string): Promise<Job | null> {
-  const docRef = doc(db, COLLECTION, id);
+  const docRef = doc(db, 'jobs', id);
   const snapshot = await getDoc(docRef);
-
   if (!snapshot.exists()) return null;
-
   const data = snapshot.data() as Job;
-
-  // Увеличиваем счётчик просмотров — не критично, не ломаем основной запрос
   try {
-    if (data.status === 'active') {
-      await updateDoc(docRef, { viewsCount: increment(1) });
-    }
-  } catch {
-    // Анонимные пользователи не могут писать — игнорируем
-  }
-
+    if (data.status === 'active') await updateDoc(docRef, { viewsCount: increment(1) });
+  } catch { /* ignore */ }
   return { ...data, id: snapshot.id };
 }
 
-/**
- * Создать новую вакансию.
- */
 export async function createJob(
   data: Omit<Job, 'id' | 'createdAt' | 'updatedAt' | 'viewsCount' | 'isPremium' | 'status'>,
   user: User
 ): Promise<string> {
-  const ref = collection(db, COLLECTION);
-
+  const ref = collection(db, 'jobs');
   const docRef = await addDoc(ref, {
     ...data,
     authorId: user.uid,
@@ -108,31 +66,13 @@ export async function createJob(
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-
   return docRef.id;
 }
 
-/**
- * Обновить вакансию.
- */
-export async function updateJob(
-  id: string,
-  data: Partial<Omit<Job, 'id' | 'createdAt' | 'authorId'>>
-): Promise<void> {
-  const docRef = doc(db, COLLECTION, id);
-  await updateDoc(docRef, {
-    ...data,
-    updatedAt: serverTimestamp(),
-  });
+export async function updateJob(id: string, data: Partial<Omit<Job, 'id' | 'createdAt' | 'authorId'>>): Promise<void> {
+  await updateDoc(doc(db, 'jobs', id), { ...data, updatedAt: serverTimestamp() });
 }
 
-/**
- * Мягкое удаление вакансии (меняем статус на closed).
- */
 export async function deleteJob(id: string): Promise<void> {
-  const docRef = doc(db, COLLECTION, id);
-  await updateDoc(docRef, {
-    status: 'closed' as SectionStatus,
-    updatedAt: serverTimestamp(),
-  });
+  await updateDoc(doc(db, 'jobs', id), { status: 'closed' as SectionStatus, updatedAt: serverTimestamp() });
 }

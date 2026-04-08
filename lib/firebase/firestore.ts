@@ -5,7 +5,6 @@ import {
   getDocs,
   addDoc,
   updateDoc,
-  deleteDoc,
   query,
   where,
   orderBy,
@@ -13,7 +12,6 @@ import {
   startAfter,
   serverTimestamp,
   increment,
-  type DocumentSnapshot,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
@@ -22,32 +20,31 @@ import { LISTINGS_PER_PAGE } from '@/lib/constants/limits';
 
 // --- Листинги ---
 
-/**
- * Получить список объявлений с фильтрами и пагинацией
- */
 export async function getListings(
   filters: ListingFilters = {},
   lastDoc?: QueryDocumentSnapshot
 ): Promise<{ listings: Listing[]; lastDoc: QueryDocumentSnapshot | null }> {
-  const listingsRef = collection(db, 'listings');
+  const ref = collection(db, 'listings');
 
-  // Строим запрос динамически
-  const constraints = [
-    where('status', '==', filters.status ?? 'active'),
-    ...(filters.cityId ? [where('cityId', '==', filters.cityId)] : []),
-    ...(filters.categoryId ? [where('categoryId', '==', filters.categoryId)] : []),
+  // Простой запрос — только orderBy без composite index
+  const q = query(
+    ref,
     orderBy('createdAt', 'desc'),
-    limit(LISTINGS_PER_PAGE),
-    ...(lastDoc ? [startAfter(lastDoc)] : []),
-  ];
+    limit(LISTINGS_PER_PAGE * 2),
+    ...(lastDoc ? [startAfter(lastDoc)] : [])
+  );
 
-  const q = query(listingsRef, ...constraints);
   const snapshot = await getDocs(q);
 
-  const listings: Listing[] = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  let listings: Listing[] = snapshot.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
   })) as Listing[];
+
+  // Фильтрация на клиенте — composite indexes могут ещё строиться
+  listings = listings.filter(l => l.status === 'active');
+  if (filters.cityId) listings = listings.filter(l => l.cityId === filters.cityId);
+  if (filters.categoryId) listings = listings.filter(l => l.categoryId === filters.categoryId);
 
   const newLastDoc = snapshot.docs.length > 0
     ? snapshot.docs[snapshot.docs.length - 1]
@@ -56,137 +53,77 @@ export async function getListings(
   return { listings, lastDoc: newLastDoc };
 }
 
-/**
- * Получить одно объявление по ID и увеличить счётчик просмотров
- */
 export async function getListing(id: string): Promise<Listing | null> {
   const docRef = doc(db, 'listings', id);
   const snapshot = await getDoc(docRef);
-
   if (!snapshot.exists()) return null;
-
   const data = snapshot.data() as Listing;
-
-  // Увеличиваем счётчик просмотров — не критично, не ломаем основной запрос
   try {
     if (data.status !== 'deleted') {
       await updateDoc(docRef, { viewsCount: increment(1) });
     }
-  } catch {
-    // Анонимные пользователи не могут писать — игнорируем
-  }
-
+  } catch { /* анонимные пользователи не могут писать */ }
   return { ...data, id: snapshot.id };
 }
 
-/**
- * Создать новое объявление
- */
 export async function createListing(data: CreateListingData): Promise<string> {
-  const listingsRef = collection(db, 'listings');
-
-  const docRef = await addDoc(listingsRef, {
+  const ref = collection(db, 'listings');
+  const docRef = await addDoc(ref, {
     ...data,
     status: 'active',
     viewsCount: 0,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-
   return docRef.id;
 }
 
-/**
- * Обновить объявление
- */
 export async function updateListing(id: string, data: UpdateListingData): Promise<void> {
   const docRef = doc(db, 'listings', id);
-  await updateDoc(docRef, {
-    ...data,
-    updatedAt: serverTimestamp(),
-  });
+  await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() });
 }
 
-/**
- * Мягкое удаление объявления (меняем статус на deleted)
- */
 export async function deleteListing(id: string): Promise<void> {
   const docRef = doc(db, 'listings', id);
-  await updateDoc(docRef, {
-    status: 'deleted',
-    updatedAt: serverTimestamp(),
-  });
+  await updateDoc(docRef, { status: 'deleted', updatedAt: serverTimestamp() });
 }
 
-/**
- * Получить объявления конкретного пользователя
- */
 export async function getUserListings(
   userId: string,
   lastDoc?: QueryDocumentSnapshot
 ): Promise<{ listings: Listing[]; lastDoc: QueryDocumentSnapshot | null }> {
-  const listingsRef = collection(db, 'listings');
-
-  const constraints = [
+  const ref = collection(db, 'listings');
+  const q = query(
+    ref,
     where('authorId', '==', userId),
-    where('status', '!=', 'deleted'),
-    orderBy('status'),
     orderBy('createdAt', 'desc'),
     limit(LISTINGS_PER_PAGE),
-    ...(lastDoc ? [startAfter(lastDoc)] : []),
-  ];
-
-  const q = query(listingsRef, ...constraints);
+    ...(lastDoc ? [startAfter(lastDoc)] : [])
+  );
   const snapshot = await getDocs(q);
-
-  const listings: Listing[] = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Listing[];
-
-  const newLastDoc = snapshot.docs.length > 0
-    ? snapshot.docs[snapshot.docs.length - 1]
-    : null;
-
+  const listings: Listing[] = snapshot.docs
+    .map((d) => ({ id: d.id, ...d.data() } as Listing))
+    .filter(l => l.status !== 'deleted');
+  const newLastDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
   return { listings, lastDoc: newLastDoc };
 }
 
 // --- Категории ---
 
-/**
- * Получить все активные категории, отсортированные по порядку
- */
 export async function getCategories(): Promise<Category[]> {
-  const categoriesRef = collection(db, 'categories');
-  const q = query(
-    categoriesRef,
-    where('isActive', '==', true),
-    orderBy('order', 'asc')
-  );
-  const snapshot = await getDocs(q);
-
-  return snapshot.docs.map((doc) => ({
-    ...doc.data(),
-    slug: doc.id,
-  })) as Category[];
+  const snapshot = await getDocs(collection(db, 'categories'));
+  return snapshot.docs
+    .map((d) => ({ ...d.data(), slug: d.id } as Category))
+    .filter(c => c.isActive)
+    .sort((a, b) => a.order - b.order);
 }
 
 // --- Города ---
 
-/**
- * Получить все активные города, отсортированные по порядку
- */
 export async function getCities(): Promise<City[]> {
-  const citiesRef = collection(db, 'cities');
-  const q = query(
-    citiesRef,
-    where('isActive', '==', true),
-    orderBy('order', 'asc')
-  );
-  const snapshot = await getDocs(q);
-
-  return snapshot.docs.map((doc) => ({
-    ...doc.data(),
-    slug: doc.id,
-  })) as City[];
+  const snapshot = await getDocs(collection(db, 'cities'));
+  return snapshot.docs
+    .map((d) => ({ ...d.data(), slug: d.id } as City))
+    .filter(c => c.isActive)
+    .sort((a, b) => a.order - b.order);
 }
