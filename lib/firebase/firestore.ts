@@ -67,9 +67,13 @@ export async function getListing(id: string): Promise<Listing | null> {
 
   const data = snapshot.data() as Listing;
 
-  // Увеличиваем счётчик просмотров только для неудалённых объявлений
-  if (data.status !== 'deleted') {
-    await updateDoc(docRef, { viewsCount: increment(1) });
+  // Увеличиваем счётчик просмотров — не критично, не ломаем основной запрос
+  try {
+    if (data.status !== 'deleted') {
+      await updateDoc(docRef, { viewsCount: increment(1) });
+    }
+  } catch {
+    // Анонимные пользователи не могут писать — игнорируем
   }
 
   return { ...data, id: snapshot.id };
