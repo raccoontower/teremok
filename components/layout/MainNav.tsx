@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils/cn';
 import { Container } from '@/components/layout/Container';
 import { useCityContext } from '@/contexts/CityContext';
+import { CitySelector } from '@/components/layout/CitySelector';
 
 // Основные табы навигации
 const TABS = [
@@ -51,6 +52,11 @@ export function MainNav() {
     // sticky top-[60px] — прилипает сразу под хедером высотой 60px
     <nav className="sticky top-[60px] z-40 bg-white border-b border-gray-100 shadow-sm">
       <Container>
+        {/* CitySelector на мобиле — показываем под табами */}
+        <div className="md:hidden py-1.5 border-b border-gray-100">
+          <CitySelector />
+        </div>
+
         {/* overflow-x-auto — горизонтальный скролл на маленьких экранах */}
         <div className="flex items-center overflow-x-auto scrollbar-hide -mb-px">
 

@@ -68,8 +68,10 @@ export function Header() {
             </button>
           </div>
 
-          {/* Селектор города */}
-          <CitySelector />
+          {/* Селектор города — только десктоп */}
+          <div className="hidden md:block">
+            <CitySelector />
+          </div>
 
           {/* Правая часть */}
           <div className="flex items-center gap-2">
@@ -90,9 +92,10 @@ export function Header() {
               <Button
                 variant="primary"
                 size="sm"
-                className="text-xs sm:text-sm px-2.5 sm:px-3"
+                className="text-xs sm:text-sm px-2.5 sm:px-4 whitespace-nowrap"
               >
-                + Подать объявление
+                <span className="hidden sm:inline">+ Подать объявление</span>
+                <span className="sm:hidden">+ Подать</span>
               </Button>
             </Link>
 
