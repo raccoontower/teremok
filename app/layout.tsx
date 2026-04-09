@@ -51,6 +51,9 @@ export const metadata: Metadata = {
     shortcut: '/favicon.svg',
     apple: '/favicon.svg',
   },
+  verification: {
+    google: 'HPk9Y6_KFZHuUClGShw9-pUbdCBxnfA8jPESPVdsIjg',
+  },
   alternates: {
     canonical: 'https://teremok-app.vercel.app',
     types: {
