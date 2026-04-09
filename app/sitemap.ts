@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 import { getAdminDb } from '@/lib/firebase/admin';
 import { ALL_CITY_SLUGS } from '@/lib/utils/cityNames';
 
-const BASE = 'https://teremok-app.vercel.app';
+const BASE = 'https://teremok.live';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic'; // не prerender во время build — env vars недоступны

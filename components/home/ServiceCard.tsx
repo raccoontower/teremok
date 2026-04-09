@@ -1,4 +1,5 @@
 'use client';
+import { getCityName } from '@/lib/utils/cityNames';
 
 import Link from 'next/link';
 import type { Service } from '@/types';
@@ -27,7 +28,7 @@ export function ServiceCard({ service, className }: ServiceCardProps) {
     serviceArea === 'remote'
       ? 'Удалённо'
       : serviceArea === 'both'
-      ? `${cityId} / Удалённо`
+      ? `${getCityName(cityId)} / Удалённо`
       : cityId;
 
   const formattedDate = createdAt ? formatDateShort(createdAt) : '';

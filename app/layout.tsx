@@ -30,11 +30,11 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Teremok' }],
   creator: 'Teremok',
-  metadataBase: new URL('https://teremok-app.vercel.app'),
+  metadataBase: new URL('https://teremok.live'),
   openGraph: {
     type: 'website',
     locale: 'ru_RU',
-    url: 'https://teremok-app.vercel.app',
+    url: 'https://teremok.live',
     siteName: 'Teremok',
     title: 'Teremok — Ваш дом в США',
     description: 'Бесплатные объявления, работа, жильё и услуги для русскоязычных в США.',
@@ -55,9 +55,9 @@ export const metadata: Metadata = {
     google: 'HPk9Y6_KFZHuUClGShw9-pUbdCBxnfA8jPESPVdsIjg',
   },
   alternates: {
-    canonical: 'https://teremok-app.vercel.app',
+    canonical: 'https://teremok.live',
     types: {
-      'application/rss+xml': 'https://teremok-app.vercel.app/feed.xml',
+      'application/rss+xml': 'https://teremok.live/feed.xml',
     },
   },
   robots: {

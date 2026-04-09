@@ -12,6 +12,7 @@ import {
   JOB_CATEGORY_LABELS,
   SALARY_PERIOD_LABELS,
 } from '@/types';
+import { getCityName } from '@/lib/utils/cityNames';
 import { formatDate } from '@/lib/utils/formatDate';
 import { ContactButtons } from '@/components/shared/ContactButtons';
 import { SimilarListings } from '@/components/shared/SimilarListings';
@@ -86,7 +87,7 @@ export function JobDetailClient({ id, initialJob }: JobDetailClientProps) {
 
         {/* Мета */}
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-neutral-500">
-          <span>📍 {job.cityId}</span>
+          <span>📍 {getCityName(job.cityId)}</span>
           {job.createdAt && <span>🕐 {formatDate(job.createdAt)}</span>}
           <span>👁 {job.viewsCount} просмотров</span>
         </div>
@@ -135,7 +136,7 @@ export function JobDetailClient({ id, initialJob }: JobDetailClientProps) {
         </div>
       </div>
 
-      <SimilarListings collection="jobs" currentId={job.id} cityId={job.cityId} category={job.category} />
+      <SimilarListings collection="jobs" currentId={job.id} cityId={getCityName(job.cityId)} category={job.category} />
     </Container>
   );
 }

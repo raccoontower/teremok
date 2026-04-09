@@ -3,6 +3,7 @@ import Image from 'next/image';
 import type { Listing } from '@/types';
 import { formatPrice } from '@/lib/utils/formatPrice';
 import { formatDateShort } from '@/lib/utils/formatDate';
+import { getCityName } from '@/lib/utils/cityNames';
 import { ROUTES } from '@/lib/constants/routes';
 import { cn } from '@/lib/utils/cn';
 
@@ -136,7 +137,7 @@ export function ListingCard({ listing, className }: ListingCardProps) {
           {/* Город с pin-иконкой */}
           <span className="flex items-center gap-1 truncate">
             <PinIcon />
-            <span className="truncate">{cityId}</span>
+            <span className="truncate">{getCityName(cityId)}</span>
           </span>
 
           {/* Дата с иконкой календаря */}

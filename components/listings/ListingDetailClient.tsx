@@ -12,6 +12,7 @@ import { SimilarListings } from '@/components/shared/SimilarListings';
 import { StatusBadge } from '@/components/ui/Badge';
 import { FullScreenSpinner } from '@/components/ui/Spinner';
 import { formatPrice } from '@/lib/utils/formatPrice';
+import { getCityName } from '@/lib/utils/cityNames';
 import { formatDate } from '@/lib/utils/formatDate';
 import { ROUTES } from '@/lib/constants/routes';
 
@@ -126,7 +127,7 @@ export function ListingDetailClient({ id, initialListing }: ListingDetailClientP
             </p>
 
             <div className="mt-3 text-sm text-gray-500 space-y-1">
-              <p>📍 {listing.cityId}</p>
+              <p>📍 {getCityName(listing.cityId)}</p>
               <p>🏷️ {listing.categoryId}</p>
               <p>📅 {formattedDate}</p>
               {listing.viewsCount !== undefined && (
@@ -159,7 +160,7 @@ export function ListingDetailClient({ id, initialListing }: ListingDetailClientP
       <SimilarListings
         collection="listings"
         currentId={listing.id}
-        cityId={listing.cityId}
+        cityId={getCityName(listing.cityId)}
         categoryId={listing.categoryId}
       />
     </Container>

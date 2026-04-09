@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/listings/new', '/jobs/new', '/housing/new', '/services/new', '/profile'],
       },
     ],
-    sitemap: 'https://teremok-app.vercel.app/sitemap.xml',
+    sitemap: 'https://teremok.live/sitemap.xml',
   };
 }

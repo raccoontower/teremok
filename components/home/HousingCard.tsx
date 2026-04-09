@@ -1,4 +1,5 @@
 'use client';
+import { getCityName } from '@/lib/utils/cityNames';
 
 import Link from 'next/link';
 import type { Housing } from '@/types';
@@ -68,7 +69,7 @@ export function HousingCard({ housing, className }: HousingCardProps) {
 
         {/* Мета: город и дата */}
         <div className="flex items-center justify-between text-sm text-slate-500 pt-1">
-          <span className="truncate">📍 {cityId}</span>
+          <span className="truncate">📍 {getCityName(cityId)}</span>
           {formattedDate && <span className="shrink-0 ml-2">{formattedDate}</span>}
         </div>
       </div>

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { FullScreenSpinner } from '@/components/ui/Spinner';
 import { PROPERTY_TYPE_LABELS } from '@/types';
+import { getCityName } from '@/lib/utils/cityNames';
 import { formatDate } from '@/lib/utils/formatDate';
 import { ContactButtons } from '@/components/shared/ContactButtons';
 import { SimilarListings } from '@/components/shared/SimilarListings';
@@ -136,7 +137,7 @@ export function HousingDetailClient({ id, initialListing }: HousingDetailClientP
 
           {/* Мета */}
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-neutral-500">
-            <span>📍 {listing.neighborhood ? `${listing.neighborhood}, ${listing.cityId}` : listing.cityId}</span>
+            <span>📍 {listing.neighborhood ? `${listing.neighborhood}, ${getCityName(listing.cityId)}` : listing.cityId}</span>
             {listing.createdAt && <span>🕐 {formatDate(listing.createdAt)}</span>}
             <span>👁 {listing.viewsCount} просмотров</span>
           </div>
@@ -173,7 +174,7 @@ export function HousingDetailClient({ id, initialListing }: HousingDetailClientP
           </div>
         </div>
       </div>
-      <SimilarListings collection="housing" currentId={listing.id} cityId={listing.cityId} />
+      <SimilarListings collection="housing" currentId={listing.id} cityId={getCityName(listing.cityId)} />
     </Container>
   );
 }

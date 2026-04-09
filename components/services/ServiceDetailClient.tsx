@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { FullScreenSpinner } from '@/components/ui/Spinner';
 import { SERVICE_CATEGORY_LABELS, SERVICE_AREA_LABELS } from '@/types';
+import { getCityName } from '@/lib/utils/cityNames';
 import { formatDate } from '@/lib/utils/formatDate';
 import { ContactButtons } from '@/components/shared/ContactButtons';
 import { SimilarListings } from '@/components/shared/SimilarListings';
@@ -123,7 +124,7 @@ export function ServiceDetailClient({ id, initialService }: ServiceDetailClientP
 
           {/* Мета */}
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-neutral-500">
-            <span>📍 {service.cityId}</span>
+            <span>📍 {getCityName(service.cityId)}</span>
             {service.createdAt && <span>🕐 {formatDate(service.createdAt)}</span>}
             <span>👁 {service.viewsCount} просмотров</span>
           </div>
@@ -164,7 +165,7 @@ export function ServiceDetailClient({ id, initialService }: ServiceDetailClientP
           </div>
         </div>
       </div>
-      <SimilarListings collection="services" currentId={service.id} cityId={service.cityId} category={service.category} />
+      <SimilarListings collection="services" currentId={service.id} cityId={getCityName(service.cityId)} category={service.category} />
     </Container>
   );
 }
