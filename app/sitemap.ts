@@ -4,7 +4,8 @@ import { getAdminDb } from '@/lib/firebase/admin';
 const BASE = 'https://teremok-app.vercel.app';
 
 export const runtime = 'nodejs';
-export const revalidate = 3600; // обновлять каждый час
+export const dynamic = 'force-dynamic'; // не prerender во время build — env vars недоступны
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const db = getAdminDb();
