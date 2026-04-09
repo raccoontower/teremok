@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
+import Script from 'next/script';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { CityProvider } from '@/contexts/CityContext';
 import { Header } from '@/components/layout/Header';
 import { MainNav } from '@/components/layout/MainNav';
 import { Footer } from '@/components/layout/Footer';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({
   subsets: ['latin', 'cyrillic'],
@@ -70,8 +73,6 @@ export default function RootLayout({
     <html lang="ru" className={inter.variable}>
       <body className="min-h-screen flex flex-col bg-gray-50">
         <AuthProvider>
-          {/* CityProvider оборачивает всё — даёт доступ к выбранному городу */}
-          {/* Suspense нужен, т.к. CityProvider использует useSearchParams */}
           <Suspense>
             <CityProvider>
               <Header />
@@ -83,6 +84,19 @@ export default function RootLayout({
             </CityProvider>
           </Suspense>
         </AuthProvider>
+
+        {/* Google Analytics 4 */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-K5JC947NR3"
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-K5JC947NR3',{page_path:window.location.pathname});`}
+        </Script>
+
+        {/* Vercel Speed Insights + Analytics */}
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );

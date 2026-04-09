@@ -11,14 +11,15 @@ interface UseListingsReturn {
   error: string | null;
 }
 
-export function useListings(filters: ListingFilters = {}): UseListingsReturn {
+export function useListings(filters: ListingFilters | null = {}): UseListingsReturn {
   const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(filters !== null);
   const [error, setError] = useState<string | null>(null);
 
   const filtersKey = JSON.stringify(filters);
 
   const fetchData = useCallback(async () => {
+    if (filters === null) return; // skip — данные переданы с сервера
     setLoading(true);
     setError(null);
     try {

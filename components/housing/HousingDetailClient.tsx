@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useHousingListing } from '@/hooks/useHousingListing';
+import type { Housing } from '@/types';
 import { Container } from '@/components/layout/Container';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -15,18 +16,20 @@ import { ReportButton } from '@/components/shared/ReportButton';
 
 interface HousingDetailClientProps {
   id: string;
+  initialListing?: Housing | null;
 }
 
 /**
  * Детальная страница объявления о жилье.
  */
-export function HousingDetailClient({ id }: HousingDetailClientProps) {
-  const { listing, loading, error } = useHousingListing(id);
+export function HousingDetailClient({ id, initialListing }: HousingDetailClientProps) {
+  const { listing: fetched, loading, error } = useHousingListing(initialListing ? '' : id);
+  const listing = initialListing ?? fetched;
   const [activePhoto, setActivePhoto] = useState(0);
 
-  if (loading) return <FullScreenSpinner />;
+  if (!initialListing && loading) return <FullScreenSpinner />;
 
-  if (error || !listing) {
+  if ((!initialListing && error) || !listing) {
     return (
       <Container className="py-16 text-center">
         <p className="text-4xl mb-3">🔍</p>

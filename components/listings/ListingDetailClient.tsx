@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useListing } from '@/hooks/useListing';
 import { Container } from '@/components/layout/Container';
+import type { Listing } from '@/types';
 import { ContactButtons } from '@/components/shared/ContactButtons';
 import { ReportButton } from '@/components/shared/ReportButton';
 import { StatusBadge } from '@/components/ui/Badge';
@@ -15,15 +16,18 @@ import { ROUTES } from '@/lib/constants/routes';
 
 interface ListingDetailClientProps {
   id: string;
+  initialListing?: Listing | null;
 }
 
-export function ListingDetailClient({ id }: ListingDetailClientProps) {
-  const { listing, loading, error } = useListing(id);
+export function ListingDetailClient({ id, initialListing }: ListingDetailClientProps) {
+  // Если данные переданы с сервера — не делаем лишний fetch
+  const { listing: fetched, loading, error } = useListing(initialListing ? '' : id);
+  const listing = initialListing ?? fetched;
   const [activePhoto, setActivePhoto] = useState(0);
 
-  if (loading) return <FullScreenSpinner />;
+  if (!initialListing && loading) return <FullScreenSpinner />;
 
-  if (error || !listing) {
+  if ((!initialListing && error) || !listing) {
     return (
       <Container className="py-16 text-center">
         <div className="text-5xl mb-4">😕</div>

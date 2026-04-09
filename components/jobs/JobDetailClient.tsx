@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useJob } from '@/hooks/useJob';
+import type { Job } from '@/types';
 import { Container } from '@/components/layout/Container';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -17,17 +18,19 @@ import { ReportButton } from '@/components/shared/ReportButton';
 
 interface JobDetailClientProps {
   id: string;
+  initialJob?: Job | null;
 }
 
 /**
  * Детальная страница вакансии.
  */
-export function JobDetailClient({ id }: JobDetailClientProps) {
-  const { job, loading, error } = useJob(id);
+export function JobDetailClient({ id, initialJob }: JobDetailClientProps) {
+  const { job: fetched, loading, error } = useJob(initialJob ? '' : id);
+  const job = initialJob ?? fetched;
 
-  if (loading) return <FullScreenSpinner />;
+  if (!initialJob && loading) return <FullScreenSpinner />;
 
-  if (error || !job) {
+  if ((!initialJob && error) || !job) {
     return (
       <Container className="py-16 text-center">
         <p className="text-4xl mb-3">🔍</p>

@@ -12,14 +12,20 @@ import type { Listing } from '@/types';
  * Клиентская часть страницы ленты объявлений.
  * Управляет фильтрами, сортировкой и пагинацией.
  */
-export function ListingsClientPage() {
+interface ListingsClientPageProps {
+  initialListings?: Listing[];
+}
+
+export function ListingsClientPage({ initialListings }: ListingsClientPageProps) {
   const { cityId, categoryId, setCity, setCategory, reset } = useFilters();
   const [sort, setSort] = useState<string>('');
 
-  const { listings, loading, hasMore, loadMore } = useListings({
-    cityId: cityId || undefined,
-    categoryId: categoryId || undefined,
-  });
+  // Если cityId/categoryId меняются — перезагружаем через хук
+  const hasFilter = !!(cityId || categoryId);
+  const { listings: fetched, loading, hasMore, loadMore } = useListings(
+    hasFilter || !initialListings ? { cityId: cityId || undefined, categoryId: categoryId || undefined } : null
+  );
+  const listings = hasFilter || !initialListings ? fetched : initialListings;
 
   // Конвертируем createdAt в миллисекунды — поддерживаем ISO строку и Firestore Timestamp
   const toMs = (ts: unknown): number => {

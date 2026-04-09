@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useService } from '@/hooks/useService';
+import type { Service } from '@/types';
 import { Container } from '@/components/layout/Container';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -15,18 +16,20 @@ import { ReportButton } from '@/components/shared/ReportButton';
 
 interface ServiceDetailClientProps {
   id: string;
+  initialService?: Service | null;
 }
 
 /**
  * Детальная страница услуги.
  */
-export function ServiceDetailClient({ id }: ServiceDetailClientProps) {
-  const { service, loading, error } = useService(id);
+export function ServiceDetailClient({ id, initialService }: ServiceDetailClientProps) {
+  const { service: fetched, loading, error } = useService(initialService ? '' : id);
+  const service = initialService ?? fetched;
   const [activePhoto, setActivePhoto] = useState(0);
 
-  if (loading) return <FullScreenSpinner />;
+  if (!initialService && loading) return <FullScreenSpinner />;
 
-  if (error || !service) {
+  if ((!initialService && error) || !service) {
     return (
       <Container className="py-16 text-center">
         <p className="text-4xl mb-3">🔍</p>
