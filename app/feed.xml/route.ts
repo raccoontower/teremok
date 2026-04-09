@@ -31,12 +31,14 @@ export async function GET() {
   try {
     const db = getAdminDb();
     const snap = await db.collection('posts')
-      .where('status', '==', 'published')
       .orderBy('publishedAt', 'desc')
-      .limit(20)
+      .limit(30)
       .get();
 
-    const items = snap.docs.map((d) => {
+    const items = snap.docs
+      .filter((d) => d.data().status === 'published')
+      .slice(0, 20)
+      .map((d) => {
       const p = d.data();
       return `
     <item>
