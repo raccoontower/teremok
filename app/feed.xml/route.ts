@@ -1,25 +1,13 @@
 import { NextResponse } from 'next/server';
-import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
-import type { BlogPost } from '@/types';
-import { Timestamp } from 'firebase/firestore';
+import { getAdminDb } from '@/lib/firebase/admin';
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
-function getFirestoreInstance() {
-  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig, 'rss-app');
-  return getFirestore(app);
-}
+const SITE_URL = 'https://teremok.live';
 
 function escapeXml(str: string): string {
-  return str
+  return (str ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -27,45 +15,47 @@ function escapeXml(str: string): string {
     .replace(/'/g, '&apos;');
 }
 
-function toRfc822(ts: Timestamp | undefined): string {
-  if (!ts) return new Date().toUTCString();
-  const date = ts.toDate ? ts.toDate() : new Date(ts as unknown as number);
-  return date.toUTCString();
+function toRfc822(ts: unknown): string {
+  try {
+    if (!ts) return new Date().toUTCString();
+    if (typeof ts === 'string') return new Date(ts).toUTCString();
+    if (typeof ts === 'object' && ts !== null) {
+      if ('seconds' in ts) return new Date((ts as { seconds: number }).seconds * 1000).toUTCString();
+      if ('_seconds' in ts) return new Date((ts as { _seconds: number })._seconds * 1000).toUTCString();
+    }
+    return new Date().toUTCString();
+  } catch { return new Date().toUTCString(); }
 }
 
 export async function GET() {
-  const SITE_URL = 'https://teremok-app.vercel.app';
-
   try {
-    const db = getFirestoreInstance();
-    const ref = collection(db, 'posts');
-    const q = query(ref, orderBy('publishedAt', 'desc'), limit(20));
-    const snapshot = await getDocs(q);
+    const db = getAdminDb();
+    const snap = await db.collection('posts')
+      .where('status', '==', 'published')
+      .orderBy('publishedAt', 'desc')
+      .limit(20)
+      .get();
 
-    const posts = snapshot.docs
-      .map((d) => ({ id: d.id, ...d.data() } as BlogPost))
-      .filter((p) => p.status === 'published');
-
-    const items = posts
-      .map(
-        (post) => `
+    const items = snap.docs.map((d) => {
+      const p = d.data();
+      return `
     <item>
-      <title>${escapeXml(post.title)}</title>
-      <link>${SITE_URL}/blog/${escapeXml(post.slug)}</link>
-      <description>${escapeXml(post.excerpt || '')}</description>
-      <pubDate>${toRfc822(post.publishedAt)}</pubDate>
-      <guid>${SITE_URL}/blog/${escapeXml(post.slug)}</guid>
-      <category>${escapeXml(post.category || '')}</category>
-    </item>`
-      )
-      .join('');
+      <title>${escapeXml(p.title as string)}</title>
+      <link>${SITE_URL}/blog/${escapeXml(p.slug as string)}</link>
+      <description>${escapeXml(p.excerpt as string || '')}</description>
+      <pubDate>${toRfc822(p.publishedAt)}</pubDate>
+      <guid>${SITE_URL}/blog/${escapeXml(p.slug as string)}</guid>
+      <category>${escapeXml(p.category as string || '')}</category>
+    </item>`;
+    }).join('');
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Теремок</title>
+    <title>Teremok — Ваш дом в США</title>
     <link>${SITE_URL}</link>
-    <description>Ваш дом в США</description>
+    <atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml"/>
+    <description>Блог для русскоязычных в США: жильё, работа, советы иммигрантам</description>
     <language>ru</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     ${items}
@@ -73,27 +63,14 @@ export async function GET() {
 </rss>`;
 
     return new NextResponse(xml, {
-      status: 200,
       headers: {
         'Content-Type': 'application/rss+xml; charset=utf-8',
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=7200',
       },
     });
-  } catch (error) {
-    console.error('[RSS] Failed to fetch posts:', error);
-
-    const emptyXml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
-  <channel>
-    <title>Теремок</title>
-    <link>${SITE_URL}</link>
-    <description>Ваш дом в США</description>
-    <language>ru</language>
-  </channel>
-</rss>`;
-
-    return new NextResponse(emptyXml, {
-      status: 200,
+  } catch (err) {
+    console.error('[RSS]', err);
+    return new NextResponse(`<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Teremok</title><link>${SITE_URL}</link></channel></rss>`, {
       headers: { 'Content-Type': 'application/rss+xml; charset=utf-8' },
     });
   }
