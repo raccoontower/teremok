@@ -8,9 +8,7 @@ import { formatDate } from '@/lib/utils/formatDate';
 
 interface Props { params: Promise<{ slug: string }> }
 
-export async function generateStaticParams() {
-  return ALL_CITY_SLUGS.map((slug) => ({ slug }));
-}
+export const dynamic = 'force-dynamic'; // env vars недоступны при build
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -26,8 +24,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
   };
 }
-
-export const revalidate = 3600;
 
 export default async function CityPage({ params }: Props) {
   const { slug } = await params;
