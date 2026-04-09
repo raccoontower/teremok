@@ -14,6 +14,7 @@ import {
 } from '@/types';
 import { formatDate } from '@/lib/utils/formatDate';
 import { ContactButtons } from '@/components/shared/ContactButtons';
+import { SimilarListings } from '@/components/shared/SimilarListings';
 import { ReportButton } from '@/components/shared/ReportButton';
 
 interface JobDetailClientProps {
@@ -133,6 +134,8 @@ export function JobDetailClient({ id, initialJob }: JobDetailClientProps) {
           <ReportButton itemId={job.id} itemType="job" itemTitle={job.title} />
         </div>
       </div>
+
+      <SimilarListings collection="jobs" currentId={job.id} cityId={job.cityId} category={job.category} />
     </Container>
   );
 }

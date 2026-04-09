@@ -12,6 +12,7 @@ import { FullScreenSpinner } from '@/components/ui/Spinner';
 import { SERVICE_CATEGORY_LABELS, SERVICE_AREA_LABELS } from '@/types';
 import { formatDate } from '@/lib/utils/formatDate';
 import { ContactButtons } from '@/components/shared/ContactButtons';
+import { SimilarListings } from '@/components/shared/SimilarListings';
 import { ReportButton } from '@/components/shared/ReportButton';
 
 interface ServiceDetailClientProps {
@@ -163,6 +164,7 @@ export function ServiceDetailClient({ id, initialService }: ServiceDetailClientP
           </div>
         </div>
       </div>
+      <SimilarListings collection="services" currentId={service.id} cityId={service.cityId} category={service.category} />
     </Container>
   );
 }

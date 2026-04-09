@@ -12,6 +12,7 @@ import { FullScreenSpinner } from '@/components/ui/Spinner';
 import { PROPERTY_TYPE_LABELS } from '@/types';
 import { formatDate } from '@/lib/utils/formatDate';
 import { ContactButtons } from '@/components/shared/ContactButtons';
+import { SimilarListings } from '@/components/shared/SimilarListings';
 import { ReportButton } from '@/components/shared/ReportButton';
 
 interface HousingDetailClientProps {
@@ -172,6 +173,7 @@ export function HousingDetailClient({ id, initialListing }: HousingDetailClientP
           </div>
         </div>
       </div>
+      <SimilarListings collection="housing" currentId={listing.id} cityId={listing.cityId} />
     </Container>
   );
 }

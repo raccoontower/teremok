@@ -66,31 +66,49 @@ export default function HomePage() {
 
       {/* ===== СЕКЦИЯ 1: Hero-баннер ===== */}
       <section className="bg-gradient-to-br from-primary-600 to-primary-700 text-white">
-        <div className="max-w-3xl mx-auto px-4 py-10 md:py-14 text-center">
-          <h1 className="text-2xl md:text-3xl font-extrabold mb-2">
+        <div className="max-w-3xl mx-auto px-4 py-10 md:py-16 text-center">
+          {/* Бейдж */}
+          <span className="inline-block bg-white/15 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4">
+            🇺🇸 Доска объявлений для русскоязычных в США
+          </span>
+          <h1 className="text-3xl md:text-4xl font-extrabold mb-3 leading-tight">
             Ваш дом в США
           </h1>
-          <p className="text-primary-100 text-sm md:text-base mb-6 max-w-xl mx-auto">
-            Найдите работу, жильё, услуги или разместите объявление — всё на русском языке
+          <p className="text-primary-100 text-base md:text-lg mb-8 max-w-xl mx-auto">
+            Работа, жильё, услуги и товары — всё на русском языке
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
+          {/* Главный CTA */}
+          <Link
+            href={ROUTES.listings}
+            className="inline-flex items-center gap-2 h-12 px-8 bg-white text-primary-700 font-bold rounded-full text-sm hover:bg-primary-50 transition-colors shadow-lg mb-4"
+          >
+            🔍 Найти объявления
+          </Link>
+          {/* Вторичные CTA */}
+          <div className="flex flex-wrap justify-center gap-2 mt-1">
             <Link
               href={ROUTES.newListing}
-              className="inline-flex items-center gap-2 h-11 px-6 bg-white text-primary-700 font-semibold rounded-full text-sm hover:bg-primary-50 transition-colors shadow"
+              className="inline-flex items-center gap-1.5 h-9 px-4 border border-white/40 text-white font-medium rounded-full text-sm hover:bg-white/10 transition-colors"
             >
               + Подать объявление
             </Link>
             <Link
               href={ROUTES.jobs}
-              className="inline-flex items-center gap-2 h-11 px-6 border border-white/40 text-white font-medium rounded-full text-sm hover:bg-white/10 transition-colors"
+              className="inline-flex items-center gap-1.5 h-9 px-4 border border-white/40 text-white font-medium rounded-full text-sm hover:bg-white/10 transition-colors"
             >
-              💼 Найти работу
+              💼 Работа
             </Link>
             <Link
               href={ROUTES.housing}
-              className="inline-flex items-center gap-2 h-11 px-6 border border-white/40 text-white font-medium rounded-full text-sm hover:bg-white/10 transition-colors"
+              className="inline-flex items-center gap-1.5 h-9 px-4 border border-white/40 text-white font-medium rounded-full text-sm hover:bg-white/10 transition-colors"
             >
-              🏠 Снять жильё
+              🏠 Жильё
+            </Link>
+            <Link
+              href={ROUTES.services}
+              className="inline-flex items-center gap-1.5 h-9 px-4 border border-white/40 text-white font-medium rounded-full text-sm hover:bg-white/10 transition-colors"
+            >
+              🔧 Услуги
             </Link>
           </div>
         </div>

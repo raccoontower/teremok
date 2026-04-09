@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getAdminDb } from '@/lib/firebase/admin';
+import { ALL_CITY_SLUGS } from '@/lib/utils/cityNames';
 
 const BASE = 'https://teremok-app.vercel.app';
 
@@ -23,6 +24,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
     { url: `${BASE}/privacy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.2 },
     { url: `${BASE}/terms`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.2 },
+    // SEO city pages
+    ...ALL_CITY_SLUGS.map((slug) => ({
+      url: `${BASE}/city/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    })),
   ];
 
   // Динамические страницы объявлений

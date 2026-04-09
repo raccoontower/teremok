@@ -1,12 +1,25 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { ServicesClientPage } from '@/components/services/ServicesClientPage';
 import { FullScreenSpinner } from '@/components/ui/Spinner';
-import type { Metadata } from 'next';
+import { getCityNameLoc } from '@/lib/utils/cityNames';
 
-export const metadata: Metadata = {
-  title: 'Услуги — Теремок',
-  description: 'Местные услуги: ремонт, уборка, IT, юридические услуги и многое другое.',
-};
+interface Props { searchParams: Promise<{ city?: string }> }
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { city } = await searchParams;
+  if (city) {
+    const cityLoc = getCityNameLoc(city);
+    return {
+      title: `Услуги в ${cityLoc} — Teremok`,
+      description: `Местные услуги в ${cityLoc}: ремонт, уборка, IT, юридические и другие услуги на русском языке.`,
+    };
+  }
+  return {
+    title: 'Услуги в США — Teremok',
+    description: 'Местные услуги для русскоязычных в США: ремонт, уборка, IT, юридические и другие.',
+  };
+}
 
 export default function ServicesPage() {
   return (

@@ -8,6 +8,7 @@ import { Container } from '@/components/layout/Container';
 import type { Listing } from '@/types';
 import { ContactButtons } from '@/components/shared/ContactButtons';
 import { ReportButton } from '@/components/shared/ReportButton';
+import { SimilarListings } from '@/components/shared/SimilarListings';
 import { StatusBadge } from '@/components/ui/Badge';
 import { FullScreenSpinner } from '@/components/ui/Spinner';
 import { formatPrice } from '@/lib/utils/formatPrice';
@@ -153,6 +154,14 @@ export function ListingDetailClient({ id, initialListing }: ListingDetailClientP
           </div>
         </div>
       </div>
+
+      {/* Похожие объявления */}
+      <SimilarListings
+        collection="listings"
+        currentId={listing.id}
+        cityId={listing.cityId}
+        categoryId={listing.categoryId}
+      />
     </Container>
   );
 }
