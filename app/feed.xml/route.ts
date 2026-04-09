@@ -65,7 +65,7 @@ export async function GET() {
   <channel>
     <title>Теремок</title>
     <link>${SITE_URL}</link>
-    <description>Русское сообщество в США</description>
+    <description>Ваш дом в США</description>
     <language>ru</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     ${items}
@@ -87,7 +87,7 @@ export async function GET() {
   <channel>
     <title>Теремок</title>
     <link>${SITE_URL}</link>
-    <description>Русское сообщество в США</description>
+    <description>Ваш дом в США</description>
     <language>ru</language>
   </channel>
 </rss>`;

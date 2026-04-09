@@ -68,7 +68,7 @@ export default function HomePage() {
       <section className="bg-gradient-to-br from-primary-600 to-primary-700 text-white">
         <div className="max-w-3xl mx-auto px-4 py-10 md:py-14 text-center">
           <h1 className="text-2xl md:text-3xl font-extrabold mb-2">
-            Русское сообщество в США
+            Ваш дом в США
           </h1>
           <p className="text-primary-100 text-sm md:text-base mb-6 max-w-xl mx-auto">
             Найдите работу, жильё, услуги или разместите объявление — всё на русском языке

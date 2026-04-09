@@ -19,13 +19,13 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Teremok — Русское сообщество в США',
+    default: 'Teremok — Ваш дом в США',
     template: '%s | Teremok',
   },
   description: 'Бесплатные объявления, работа, жильё и услуги для русскоязычных в США. Найдите квартиру, работу или мастера на родном языке.',
   keywords: [
     'объявления США', 'русские в Америке', 'работа для русскоязычных',
-    'жильё в США', 'услуги на русском', 'русское сообщество США',
+    'жильё в США', 'услуги на русском', 'сообщество русскоязычных США',
     'бесплатные объявления', 'доска объявлений США',
   ],
   authors: [{ name: 'Teremok' }],
@@ -36,13 +36,13 @@ export const metadata: Metadata = {
     locale: 'ru_RU',
     url: 'https://teremok-app.vercel.app',
     siteName: 'Teremok',
-    title: 'Teremok — Русское сообщество в США',
+    title: 'Teremok — Ваш дом в США',
     description: 'Бесплатные объявления, работа, жильё и услуги для русскоязычных в США.',
     images: [{ url: '/logo.jpg', width: 1200, height: 630, alt: 'Teremok' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Teremok — Русское сообщество в США',
+    title: 'Teremok — Ваш дом в США',
     description: 'Бесплатные объявления, работа, жильё и услуги для русскоязычных в США.',
     images: ['/logo.jpg'],
   },

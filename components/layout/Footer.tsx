@@ -24,7 +24,7 @@ export function Footer() {
               </div>
             </Link>
             <p className="text-sm leading-relaxed">
-              Русское сообщество в США — объявления, работа, жильё и услуги.
+              Ваш дом в США — объявления, работа, жильё и услуги.
             </p>
           </div>
 
