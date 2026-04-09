@@ -15,6 +15,7 @@ import { formatDate } from '@/lib/utils/formatDate';
 import { ContactButtons } from '@/components/shared/ContactButtons';
 import { SimilarListings } from '@/components/shared/SimilarListings';
 import { ReportButton } from '@/components/shared/ReportButton';
+import { ShareButton } from '@/components/shared/ShareButton';
 
 interface ServiceDetailClientProps {
   id: string;
@@ -159,8 +160,9 @@ export function ServiceDetailClient({ id, initialService }: ServiceDetailClientP
             </div>
           </div>
 
-          {/* Жалоба */}
-          <div className="flex justify-end pt-2">
+          {/* Действия */}
+          <div className="flex items-center justify-between pt-2">
+            <ShareButton title={service.title} />
             <ReportButton itemId={service.id} itemType="service" itemTitle={service.title} />
           </div>
         </div>

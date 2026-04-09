@@ -15,6 +15,7 @@ import { formatDate } from '@/lib/utils/formatDate';
 import { ContactButtons } from '@/components/shared/ContactButtons';
 import { SimilarListings } from '@/components/shared/SimilarListings';
 import { ReportButton } from '@/components/shared/ReportButton';
+import { ShareButton } from '@/components/shared/ShareButton';
 
 interface HousingDetailClientProps {
   id: string;
@@ -168,8 +169,9 @@ export function HousingDetailClient({ id, initialListing }: HousingDetailClientP
             </div>
           </div>
 
-          {/* Жалоба */}
-          <div className="flex justify-end pt-2">
+          {/* Действия */}
+          <div className="flex items-center justify-between pt-2">
+            <ShareButton title={listing.title} />
             <ReportButton itemId={listing.id} itemType="housing" itemTitle={listing.title} />
           </div>
         </div>

@@ -8,6 +8,7 @@ import { Container } from '@/components/layout/Container';
 import type { Listing } from '@/types';
 import { ContactButtons } from '@/components/shared/ContactButtons';
 import { ReportButton } from '@/components/shared/ReportButton';
+import { ShareButton } from '@/components/shared/ShareButton';
 import { SimilarListings } from '@/components/shared/SimilarListings';
 import { StatusBadge } from '@/components/ui/Badge';
 import { FullScreenSpinner } from '@/components/ui/Spinner';
@@ -148,8 +149,9 @@ export function ListingDetailClient({ id, initialListing }: ListingDetailClientP
               <p>Встречайтесь лично, не платите вперёд. <a href="/safety" className="underline">Подробнее о безопасности →</a></p>
             </div>
 
-            {/* Жалоба */}
-            <div className="flex justify-end mt-3">
+            {/* Действия */}
+            <div className="flex items-center justify-between mt-3">
+              <ShareButton title={listing.title} />
               <ReportButton itemId={listing.id} itemType="listing" itemTitle={listing.title} />
             </div>
           </div>

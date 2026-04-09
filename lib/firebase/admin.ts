@@ -1,5 +1,6 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
 /**
  * Firebase Admin SDK — используется только на сервере (API routes, Server Components).
@@ -24,4 +25,8 @@ function getAdminApp() {
 
 export function getAdminDb() {
   return getFirestore(getAdminApp());
+}
+
+export function getAdminAuth() {
+  return getAuth(getAdminApp());
 }
