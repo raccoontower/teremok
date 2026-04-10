@@ -23,14 +23,15 @@ export function ReportButton({ itemId, itemType, itemTitle }: ReportButtonProps)
     if (!reason.trim()) return;
     setStatus('loading');
     try {
-      await fetch('/api/contact', {
+      const fd = new FormData();
+      fd.append('message', `Тип: ${TYPE_LABELS[itemType]}\nID: ${itemId}\nНазвание: ${itemTitle}\n\nПричина:\n${reason}`);
+      fd.append('_subject', `🚨 Жалоба: ${TYPE_LABELS[itemType]} — ${itemTitle}`);
+      fd.append('_captcha', 'false');
+      fd.append('_template', 'table');
+      await fetch('https://formsubmit.co/ajax/yb2154878512@gmail.com', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'report',
-          subject: `🚨 Жалоба: ${TYPE_LABELS[itemType]} — ${itemTitle}`,
-          message: `Тип: ${TYPE_LABELS[itemType]}\nID: ${itemId}\nНазвание: ${itemTitle}\n\nПричина жалобы:\n${reason}`,
-        }),
+        headers: { Accept: 'application/json' },
+        body: fd,
       });
       setStatus('done');
     } catch {

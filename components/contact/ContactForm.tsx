@@ -4,6 +4,8 @@ import { useState } from 'react';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
+const FORM_EMAIL = 'yb2154878512@gmail.com';
+
 export function ContactForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -19,17 +21,28 @@ export function ContactForm() {
     setErrorMsg('');
 
     try {
-      const res = await fetch('/api/contact', {
+      const formData = new FormData();
+      formData.append('name', name || 'Аноним');
+      formData.append('email', email || 'не указан');
+      formData.append('message', message);
+      formData.append('_subject', '📬 Новое сообщение с Teremok.live');
+      formData.append('_captcha', 'false');
+      formData.append('_template', 'table');
+      formData.append('_next', 'https://teremok.live/contact?sent=1');
+
+      const res = await fetch(`https://formsubmit.co/ajax/${FORM_EMAIL}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, message, type: 'contact' }),
+        headers: { Accept: 'application/json' },
+        body: formData,
       });
-      const data = await res.json() as { ok?: boolean; error?: string };
-      if (!res.ok) throw new Error(data.error ?? 'Ошибка');
+
+      const data = await res.json() as { success?: string };
+      if (data.success !== 'true' && !res.ok) throw new Error('Ошибка отправки');
+
       setStatus('success');
       setName(''); setEmail(''); setMessage('');
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Не удалось отправить');
+    } catch {
+      setErrorMsg('Не удалось отправить. Напишите нам напрямую: info@teremok.live');
       setStatus('error');
     }
   }
@@ -39,11 +52,8 @@ export function ContactForm() {
       <div className="text-center py-10">
         <div className="text-5xl mb-3">✅</div>
         <p className="text-lg font-semibold text-neutral-900 mb-1">Сообщение отправлено!</p>
-        <p className="text-neutral-500 text-sm">Мы ответим на {email || 'ваш email'} в течение 24 часов.</p>
-        <button
-          onClick={() => setStatus('idle')}
-          className="mt-5 text-primary-600 text-sm hover:underline"
-        >
+        <p className="text-neutral-500 text-sm">Мы ответим в течение 24 часов.</p>
+        <button onClick={() => setStatus('idle')} className="mt-5 text-primary-600 text-sm hover:underline">
           Отправить ещё одно
         </button>
       </div>
@@ -112,9 +122,7 @@ export function ContactForm() {
             </svg>
             Отправляем...
           </>
-        ) : (
-          '📬 Отправить сообщение'
-        )}
+        ) : '📬 Отправить сообщение'}
       </button>
     </form>
   );
