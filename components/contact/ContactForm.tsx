@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
-const FORM_EMAIL = 'yb2154878512@gmail.com';
+const WEB3FORMS_KEY = '9a5c27b2-17ae-4b52-8c59-204fdef2a0d9';
 
 export function ContactForm() {
   const [name, setName] = useState('');
@@ -21,23 +21,21 @@ export function ContactForm() {
     setErrorMsg('');
 
     try {
-      const formData = new FormData();
-      formData.append('name', name || 'Аноним');
-      formData.append('email', email || 'не указан');
-      formData.append('message', message);
-      formData.append('_subject', '📬 Новое сообщение с Teremok.live');
-      formData.append('_captcha', 'false');
-      formData.append('_template', 'table');
-      formData.append('_next', 'https://teremok.live/contact?sent=1');
-
-      const res = await fetch(`https://formsubmit.co/ajax/${FORM_EMAIL}`, {
+      const res = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        headers: { Accept: 'application/json' },
-        body: formData,
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          name: name || 'Аноним',
+          email: email || 'не указан',
+          message,
+          subject: '📬 Новое сообщение с Teremok.live',
+          from_name: 'Teremok Contact Form',
+        }),
       });
 
-      const data = await res.json() as { success?: string };
-      if (data.success !== 'true' && !res.ok) throw new Error('Ошибка отправки');
+      const data = await res.json() as { success?: boolean };
+      if (!data.success) throw new Error('Ошибка отправки');
 
       setStatus('success');
       setName(''); setEmail(''); setMessage('');
