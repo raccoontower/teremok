@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAdminDb } from '@/lib/firebase/admin';
 import { serializeDoc } from '@/lib/firebase/serialize';
+import { BlogContent } from '@/components/blog/BlogContent';
 import type { BlogPost } from '@/types';
 
 interface Props { params: Promise<{ slug: string }> }
@@ -71,9 +72,7 @@ export default async function BlogPostPage({ params }: Props) {
             Автор: <span className="font-medium text-neutral-700">{post.authorName}</span>
           </p>
 
-          <div className="text-neutral-700 leading-relaxed text-base whitespace-pre-line">
-            {post.content as unknown as string}
-          </div>
+          <BlogContent content={post.content as unknown as string} />
         </article>
 
         <div className="mt-8">
