@@ -95,8 +95,9 @@ export function ListingCard({ listing, className }: ListingCardProps) {
             alt={title}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            // Лёгкий зум при hover — ощущение интерактивности
             className="object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            unoptimized={photos[0]?.includes('unsplash.com')}
           />
         ) : (
           // Красивый placeholder с иконкой домика — не пустой серый блок
