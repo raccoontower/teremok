@@ -11,7 +11,7 @@ export default function TermsPage() {
 
       <p>
         Настоящие Правила использования («Правила») регулируют порядок работы с платформой
-        Теремок (сайт teremok.app). Регистрируясь или используя платформу, вы подтверждаете
+        Теремок (сайт teremok.live). Регистрируясь или используя платформу, вы подтверждаете
         своё согласие с настоящими Правилами в полном объёме.
       </p>
 
@@ -72,7 +72,7 @@ export default function TermsPage() {
       </ul>
       <p>
         Если вы подозреваете несанкционированный доступ к вашему аккаунту — немедленно
-        уведомите нас по адресу <a href="mailto:info@teremok.app">info@teremok.app</a>.
+        уведомите нас по адресу <a href="mailto:info@teremok.live">info@teremok.live</a>.
       </p>
 
       <h2>6. Модерация</h2>
@@ -84,7 +84,7 @@ export default function TermsPage() {
       </p>
       <p>
         Пользователи могут сообщать о нарушениях через функцию «Пожаловаться» в карточке
-        объявления или по адресу <a href="mailto:info@teremok.app">info@teremok.app</a>.
+        объявления или по адресу <a href="mailto:info@teremok.live">info@teremok.live</a>.
       </p>
 
       <h2>7. Ограничение ответственности платформы</h2>
@@ -135,7 +135,7 @@ export default function TermsPage() {
       <h2>11. Контакт</h2>
       <p>
         По вопросам, связанным с Правилами использования:{' '}
-        <a href="mailto:info@teremok.app">info@teremok.app</a>
+        <a href="mailto:info@teremok.live">info@teremok.live</a>
       </p>
     </StaticPage>
   );

@@ -12,7 +12,7 @@ export default function PrivacyPage() {
       <p>
         Настоящая Политика конфиденциальности описывает, как платформа Теремок
         («мы», «нас», «наш») собирает, использует и защищает персональные данные
-        пользователей («вы»). Используя сайт teremok.app, вы соглашаетесь с условиями
+        пользователей («вы»). Используя сайт teremok.live, вы соглашаетесь с условиями
         данной политики.
       </p>
 
@@ -73,7 +73,7 @@ export default function PrivacyPage() {
         <li><strong>Удалять</strong> свои объявления и фотографии.</li>
         <li>
           <strong>Запросить удаление аккаунта</strong> — напишите на{' '}
-          <a href="mailto:info@teremok.app">info@teremok.app</a> с пометкой «Удаление аккаунта».
+          <a href="mailto:info@teremok.live">info@teremok.live</a> с пометкой «Удаление аккаунта».
           Мы удалим ваши данные в течение 30 дней.
         </li>
         <li><strong>Отказаться</strong> от маркетинговых рассылок (если они введены).</li>
@@ -112,7 +112,7 @@ export default function PrivacyPage() {
       <h2>9. Контакт</h2>
       <p>
         По вопросам, связанным с обработкой персональных данных, обращайтесь:{' '}
-        <a href="mailto:info@teremok.app">info@teremok.app</a>
+        <a href="mailto:info@teremok.live">info@teremok.live</a>
       </p>
     </StaticPage>
   );

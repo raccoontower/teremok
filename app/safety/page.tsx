@@ -42,7 +42,7 @@ export default function SafetyPage() {
       <ul>
         <li>
           <strong>Teremok:</strong>{' '}
-          <a href="mailto:report@teremok.app">report@teremok.app</a>
+          <a href="mailto:info@teremok.live">info@teremok.live</a>
         </li>
         <li>
           <strong>FTC (Federal Trade Commission):</strong>{' '}
