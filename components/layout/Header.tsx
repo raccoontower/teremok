@@ -12,6 +12,8 @@ import { signOut } from '@/lib/firebase/auth';
 import { ROUTES } from '@/lib/constants/routes';
 import { useState, type KeyboardEvent } from 'react';
 
+import { isAdmin } from '@/lib/constants/admins';
+
 export function Header() {
   const { user, loading } = useAuthContext();
   const router = useRouter();
@@ -139,6 +141,21 @@ export function Header() {
                           {user.email}
                         </p>
                       </div>
+                      <div className="px-4 py-2 border-b border-gray-100 bg-gray-50/50">
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                          Управление
+                        </p>
+                      </div>
+
+                      {isAdmin(user.email) && (
+                        <Link
+                          href="/admin"
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-primary-600 font-bold hover:bg-primary-50 transition-colors"
+                        >
+                          ⚙️ Админ-панель
+                        </Link>
+                      )}
+
                       <Link
                         href={ROUTES.profile}
                         className="flex items-center px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors duration-100"
