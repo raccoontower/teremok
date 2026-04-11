@@ -6,6 +6,7 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { Container } from '@/components/layout/Container';
 import { isAdmin } from '@/lib/constants/admins';
 import { formatDate } from '@/lib/utils/formatDate';
+import { EditItemModal } from '@/components/shared/EditItemModal';
 
 type ItemType = 'listing' | 'job' | 'housing' | 'service';
 
@@ -26,6 +27,7 @@ export function AdminClient() {
   const [items, setItems] = useState<AdminItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<AdminItem | null>(null);
 
   useEffect(() => {
     if (!authLoading) {
@@ -126,13 +128,21 @@ export function AdminClient() {
                     {item.createdAt ? formatDate(item.createdAt) : '-'}
                   </td>
                   <td className="px-4 py-4 text-right">
-                    <button
-                      onClick={() => handleDelete(item)}
-                      disabled={deleting === item.id}
-                      className="text-red-500 hover:text-red-700 font-medium disabled:opacity-30"
-                    >
-                      {deleting === item.id ? '...' : 'Удалить'}
-                    </button>
+                    <div className="flex items-center justify-end gap-3">
+                      <button
+                        onClick={() => setEditingItem(item)}
+                        className="text-primary-600 hover:text-primary-800 font-medium"
+                      >
+                        Изменить
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item)}
+                        disabled={deleting === item.id}
+                        className="text-red-500 hover:text-red-700 font-medium disabled:opacity-30"
+                      >
+                        {deleting === item.id ? '...' : 'Удалить'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -140,6 +150,15 @@ export function AdminClient() {
           </tbody>
         </table>
       </div>
+      {editingItem && (
+        <EditItemModal
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSaved={(id, updates) => {
+            setItems(prev => prev.map(i => i.id === id ? { ...i, ...updates as Partial<AdminItem> } : i));
+          }}
+        />
+      )}
     </Container>
   );
 }
