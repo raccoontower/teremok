@@ -38,18 +38,23 @@ export const metadata: Metadata = {
     siteName: 'Teremok',
     title: 'Teremok — Ваш дом в США',
     description: 'Бесплатные объявления, работа, жильё и услуги для русскоязычных в США.',
-    images: [{ url: '/logo.jpg', width: 1200, height: 630, alt: 'Teremok' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Teremok — Ваш дом в США' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Teremok — Ваш дом в США',
     description: 'Бесплатные объявления, работа, жильё и услуги для русскоязычных в США.',
-    images: ['/logo.jpg'],
+    images: ['/og-image.jpg'],
   },
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    icon: [
+      { url: '/favicon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon-32.png',
+    apple: '/apple-touch-icon.png',
+    other: [{ rel: 'manifest', url: '/manifest.json' }],
   },
   verification: {
     google: 'HPk9Y6_KFZHuUClGShw9-pUbdCBxnfA8jPESPVdsIjg',
