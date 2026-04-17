@@ -3,8 +3,7 @@
  * Сравнение без учёта регистра.
  */
 export const ADMIN_EMAILS = [
-  'yb2154878512@gmail.com',
-  'yb2154878522@gmail.com', // второй аккаунт
+  'yb2154878522@gmail.com',
 ];
 
 export function isAdmin(email?: string | null): boolean {
