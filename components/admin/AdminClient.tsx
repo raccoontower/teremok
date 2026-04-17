@@ -52,6 +52,10 @@ export function AdminClient() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<AdminItem | null>(null);
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [editUserName, setEditUserName] = useState('');
+  const [editUserEmail, setEditUserEmail] = useState('');
+  const [editUserSaving, setEditUserSaving] = useState(false);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
@@ -115,6 +119,30 @@ export function AdminClient() {
       });
       setUsers(prev => prev.map(x => x.uid === u.uid ? { ...x, disabled: !u.disabled } : x));
     } catch { alert('Ошибка'); } finally { setDeleting(null); }
+  }
+
+  function openEditUser(u: AdminUser) {
+    setEditingUser(u);
+    setEditUserName(u.displayName);
+    setEditUserEmail(u.email);
+  }
+
+  async function handleSaveUser() {
+    if (!editingUser) return;
+    setEditUserSaving(true);
+    try {
+      const token = await user!.getIdToken();
+      await fetch(`/api/admin/users/${editingUser.uid}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ displayName: editUserName, email: editUserEmail }),
+      });
+      setUsers(prev => prev.map(x => x.uid === editingUser.uid
+        ? { ...x, displayName: editUserName, email: editUserEmail }
+        : x));
+      setEditingUser(null);
+    } catch { alert('Ошибка при сохранении'); }
+    finally { setEditUserSaving(false); }
   }
 
   async function handleDeleteUser(u: AdminUser) {
@@ -278,6 +306,10 @@ export function AdminClient() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">
+                      <button onClick={() => openEditUser(u)}
+                        className="text-primary-600 hover:text-primary-800 text-sm font-medium">
+                        Изменить
+                      </button>
                       <button onClick={() => handleToggleUser(u)} disabled={deleting === u.uid}
                         className={`text-sm font-medium disabled:opacity-30 ${u.disabled ? 'text-green-600 hover:text-green-800' : 'text-amber-600 hover:text-amber-800'}`}>
                         {u.disabled ? 'Разблокировать' : 'Заблокировать'}
@@ -298,6 +330,62 @@ export function AdminClient() {
       {editingItem && (
         <EditItemModal item={editingItem} onClose={() => setEditingItem(null)}
           onSaved={(id, updates) => setItems(prev => prev.map(i => i.id === id ? { ...i, ...updates as Partial<AdminItem> } : i))} />
+      )}
+
+      {/* Модалка редактирования пользователя */}
+      {editingUser && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setEditingUser(null)} />
+          <div className="relative w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl">
+            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-neutral-900">Редактировать пользователя</h2>
+              <button onClick={() => setEditingUser(null)} className="text-neutral-400 hover:text-neutral-700 p-1">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
+                {editingUser.photoURL
+                  ? <img src={editingUser.photoURL} alt="" className="w-10 h-10 rounded-full" />
+                  : <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-600 font-bold text-lg flex items-center justify-center">
+                      {(editingUser.displayName || editingUser.email)?.[0]?.toUpperCase()}
+                    </div>
+                }
+                <div>
+                  <div className="text-xs text-neutral-400 font-mono">{editingUser.uid}</div>
+                  <div className={`text-xs mt-0.5 ${editingUser.disabled ? 'text-red-500' : 'text-green-600'}`}>
+                    {editingUser.disabled ? '🔒 Заблокирован' : '✅ Активен'}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Имя</label>
+                <input value={editUserName} onChange={e => setEditUserName(e.target.value)}
+                  placeholder="Имя пользователя"
+                  className="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Email</label>
+                <input value={editUserEmail} onChange={e => setEditUserEmail(e.target.value)}
+                  type="email" placeholder="email@example.com"
+                  className="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                <p className="text-xs text-neutral-400 mt-1">Изменение email — только для аккаунтов без Google-входа</p>
+              </div>
+            </div>
+            <div className="px-5 py-4 border-t border-neutral-100 flex gap-3">
+              <button onClick={() => setEditingUser(null)}
+                className="flex-1 py-2.5 border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+                Отмена
+              </button>
+              <button onClick={handleSaveUser} disabled={editUserSaving}
+                className="flex-1 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-bold hover:bg-primary-700 disabled:opacity-50">
+                {editUserSaving ? 'Сохранение...' : '💾 Сохранить'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </Container>
   );
