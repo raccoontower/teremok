@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { FirebaseError } from 'firebase/app';
-import { signIn, signInWithGoogle } from '@/lib/firebase/auth';
+import { signIn, signInWithGoogle, sendPasswordReset } from '@/lib/firebase/auth';
 import { loginSchema, type LoginFormData } from '@/lib/utils/validators';
 import { ROUTES } from '@/lib/constants/routes';
 
@@ -15,6 +15,11 @@ export function LoginForm() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
+  const [resetError, setResetError] = useState('');
+  const [showReset, setShowReset] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const {
     register,
@@ -56,6 +61,51 @@ export function LoginForm() {
       setGoogleLoading(false);
     }
   };
+
+  const handlePasswordReset = async () => {
+    setResetError('');
+    if (!resetEmail.trim()) { setResetError('Введите email'); return; }
+    setResetLoading(true);
+    try {
+      await sendPasswordReset(resetEmail.trim());
+      setResetSent(true);
+    } catch {
+      setResetError('Email не найден или произошла ошибка');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  if (showReset) {
+    return (
+      <div className="space-y-4">
+        <h3 className="font-semibold text-neutral-800">Восстановление пароля</h3>
+        {resetSent ? (
+          <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+            <p className="text-green-700 text-sm">✅ Письмо отправлено на <strong>{resetEmail}</strong>. Проверьте почту (и папку «Спам»).</p>
+          </div>
+        ) : (
+          <>
+            <Input
+              label="Ваш email"
+              type="email"
+              placeholder="your@email.com"
+              value={resetEmail}
+              onChange={e => setResetEmail(e.target.value)}
+            />
+            {resetError && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{resetError}</p>}
+            <Button type="button" variant="primary" fullWidth loading={resetLoading} onClick={handlePasswordReset}>
+              Отправить письмо
+            </Button>
+          </>
+        )}
+        <button type="button" onClick={() => { setShowReset(false); setResetSent(false); setResetError(''); }}
+          className="text-sm text-primary-600 hover:underline">
+          ← Вернуться ко входу
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -106,14 +156,16 @@ export function LoginForm() {
         </p>
       )}
 
-      <Button
-        type="submit"
-        variant="primary"
-        fullWidth
-        loading={isSubmitting}
-      >
+      <Button type="submit" variant="primary" fullWidth loading={isSubmitting}>
         Войти
       </Button>
+
+      <div className="text-center">
+        <button type="button" onClick={() => setShowReset(true)}
+          className="text-sm text-primary-600 hover:underline">
+          Забыли пароль?
+        </button>
+      </div>
     </form>
   );
 }

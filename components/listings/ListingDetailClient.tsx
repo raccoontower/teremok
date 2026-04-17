@@ -141,7 +141,7 @@ export function ListingDetailClient({ id, initialListing }: ListingDetailClientP
           <div className="bg-white border border-gray-200 rounded-xl p-4">
             <h2 className="font-semibold text-gray-900 mb-3">Связаться с автором</h2>
             <p className="text-sm text-gray-500 mb-3">{listing.authorName}</p>
-            <ContactButtons contact={listing.contact} />
+            <ContactButtons contact={listing.contact ?? {}} />
 
             {/* Совет безопасности */}
             <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">

@@ -59,7 +59,7 @@ export function JobDetailClient({ id, initialJob }: JobDetailClientProps) {
     return null;
   })();
 
-  const { contact } = job;
+  const contact = job?.contact ?? {};
 
   return (
     <Container className="py-6 max-w-2xl">

@@ -19,15 +19,31 @@ export async function GET(req: NextRequest) {
     const limitN = Math.min(parseInt(searchParams.get('limit') ?? '40'), 100);
 
     const db = getAdminDb();
-    const snap = await db.collection('jobs').orderBy('createdAt', 'desc').limit(limitN).get();
+    // Загружаем из коллекции jobs + объявления с categoryId='jobs' из listings
+    const [jobsSnap, listingsSnap] = await Promise.all([
+      db.collection('jobs').orderBy('createdAt', 'desc').limit(limitN).get(),
+      db.collection('listings').orderBy('createdAt', 'desc').limit(100).get(),
+    ]);
 
-    let docs = snap.docs.map((d) => serializeDoc({ id: d.id, ...d.data() }));
+    let docs = jobsSnap.docs.map((d) => serializeDoc({ id: d.id, _source: 'jobs', ...d.data() }));
+
+    // Добавляем объявления из listings с categoryId='jobs'
+    const crossListings = listingsSnap.docs
+      .map((d) => serializeDoc({ id: d.id, _source: 'listing', ...d.data() }))
+      .filter((d) => d.categoryId === 'jobs' && d.status === 'active');
+    docs = [...docs, ...crossListings];
+
     docs = docs.filter((d) => d.status === 'active');
+    // Убираем дубли по id
+    const seen = new Set<string>();
+    docs = docs.filter(d => { const id = String(d.id); if (seen.has(id)) return false; seen.add(id); return true; });
     if (cityId) docs = docs.filter((d) => d.cityId === cityId);
     if (listingType) docs = docs.filter((d) => d.listingType === listingType);
     if (category) docs = docs.filter((d) => d.category === category);
+    // Сортировка по дате
+    docs.sort((a, b) => new Date(String(b.createdAt ?? '')).getTime() - new Date(String(a.createdAt ?? '')).getTime());
 
-    return NextResponse.json({ jobs: docs }, {
+    return NextResponse.json({ jobs: docs.slice(0, limitN) }, {
       headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
     });
   } catch (err) {

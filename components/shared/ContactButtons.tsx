@@ -12,7 +12,7 @@ interface ContactButtonsProps {
 }
 
 export function ContactButtons({ contact, className }: ContactButtonsProps) {
-  const { phone, whatsapp, telegram, email } = contact;
+  const { phone, whatsapp, telegram, email } = contact ?? {};
 
   if (!phone && !whatsapp && !telegram && !email) {
     return <p className="text-sm text-gray-400 italic">Контакты не указаны</p>;

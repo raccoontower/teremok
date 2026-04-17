@@ -83,7 +83,7 @@ export function ListingCard({ listing, className }: ListingCardProps) {
     <Link
       href={ROUTES.listing(id)}
       className={cn(
-        'group block bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden',
+        'group flex flex-col h-full bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden',
         className
       )}
     >

@@ -80,3 +80,11 @@ export async function signInWithGoogle(): Promise<FirebaseUser> {
 export async function signOut(): Promise<void> {
   await firebaseSignOut(auth);
 }
+
+/**
+ * Отправка письма для сброса пароля
+ */
+export async function sendPasswordReset(email: string): Promise<void> {
+  const { sendPasswordResetEmail } = await import("firebase/auth");
+  await sendPasswordResetEmail(auth, email);
+}

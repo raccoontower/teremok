@@ -44,7 +44,7 @@ export function ServiceDetailClient({ id, initialService }: ServiceDetailClientP
     );
   }
 
-  const { contact } = service;
+  const contact = service?.contact ?? {};
 
   // Форматируем цену
   const formattedPrice = (() => {

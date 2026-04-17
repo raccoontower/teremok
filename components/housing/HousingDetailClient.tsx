@@ -44,7 +44,7 @@ export function HousingDetailClient({ id, initialListing }: HousingDetailClientP
     );
   }
 
-  const { contact } = listing;
+  const contact = listing?.contact ?? {};
   const formattedPrice = `$${listing.price.toLocaleString()}${listing.listingType === 'rent' ? '/мес' : ''}`;
 
   return (
