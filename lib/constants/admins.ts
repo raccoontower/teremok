@@ -1,12 +1,13 @@
 /**
  * Список email-адресов, имеющих доступ к админ-панели.
+ * Сравнение без учёта регистра.
  */
 export const ADMIN_EMAILS = [
-  'Yb2154878512@gmail.com',
-  'marbel96@gmail.com', // Добавил твой второй email на всякий случай
+  'yb2154878512@gmail.com',
+  'yb2154878522@gmail.com', // второй аккаунт
 ];
 
 export function isAdmin(email?: string | null): boolean {
   if (!email) return false;
-  return ADMIN_EMAILS.includes(email);
+  return ADMIN_EMAILS.includes(email.toLowerCase().trim());
 }
