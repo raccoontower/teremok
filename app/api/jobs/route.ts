@@ -38,7 +38,8 @@ export async function GET(req: NextRequest) {
     const seen = new Set<string>();
     docs = docs.filter(d => { const id = String(d.id); if (seen.has(id)) return false; seen.add(id); return true; });
     if (cityId) docs = docs.filter((d) => d.cityId === cityId);
-    if (listingType) docs = docs.filter((d) => d.listingType === listingType);
+    // Если listingType не задан у записи — считаем её вакансией (vacancy)
+    if (listingType) docs = docs.filter((d) => (d.listingType ?? 'vacancy') === listingType);
     if (category) docs = docs.filter((d) => d.category === category);
     // Сортировка по дате
     docs.sort((a, b) => new Date(String(b.createdAt ?? '')).getTime() - new Date(String(a.createdAt ?? '')).getTime());

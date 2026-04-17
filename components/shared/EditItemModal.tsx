@@ -4,6 +4,24 @@ import { useState, useEffect } from 'react';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { getCityName } from '@/lib/utils/cityNames';
 
+const CATEGORIES = [
+  { value: 'cars', label: '🚗 Авто' },
+  { value: 'clothing', label: '👗 Одежда' },
+  { value: 'electronics', label: '📱 Электроника' },
+  { value: 'food', label: '🍕 Продукты / Еда' },
+  { value: 'furniture', label: '🛋️ Мебель' },
+  { value: 'jobs', label: '💼 Работа' },
+  { value: 'kids', label: '🧸 Детские товары' },
+  { value: 'real-estate', label: '🏠 Недвижимость' },
+  { value: 'services', label: '🔧 Услуги' },
+  { value: 'sports', label: '⚽ Спорт' },
+  { value: 'pets', label: '🐾 Животные' },
+  { value: 'tools', label: '🔨 Инструменты' },
+  { value: 'books', label: '📚 Книги' },
+  { value: 'music', label: '🎸 Музыка' },
+  { value: 'other', label: '📦 Другое' },
+];
+
 const CITIES = [
   { value: 'new-york', label: 'Нью-Йорк' },
   { value: 'los-angeles', label: 'Лос-Анджелес' },
@@ -35,6 +53,7 @@ interface EditItemModalProps {
     priceType?: string;
     cityId?: string;
     status?: string;
+    categoryId?: string;
   };
   onClose: () => void;
   onSaved: (id: string, updates: Record<string, unknown>) => void;
@@ -54,6 +73,7 @@ export function EditItemModal({ item, onClose, onSaved }: EditItemModalProps) {
   const [price, setPrice] = useState(item.price?.toString() ?? '');
   const [cityId, setCityId] = useState(item.cityId ?? '');
   const [status, setStatus] = useState(item.status ?? 'active');
+  const [categoryId, setCategoryId] = useState(item.categoryId ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -69,6 +89,7 @@ export function EditItemModal({ item, onClose, onSaved }: EditItemModalProps) {
       const token = await user!.getIdToken();
       const updates: Record<string, unknown> = { title, description, status, cityId };
       if (price) updates.price = parseFloat(price);
+      if (categoryId) updates.categoryId = categoryId;
       const res = await fetch(`/api/${API_MAP[item._type]}/${item.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -120,6 +141,19 @@ export function EditItemModal({ item, onClose, onSaved }: EditItemModalProps) {
               onChange={e => setDescription(e.target.value)}
               className="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">Категория</label>
+            <select
+              value={categoryId}
+              onChange={e => setCategoryId(e.target.value)}
+              className="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+            >
+              <option value="">— не изменять —</option>
+              {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
+            <p className="text-xs text-neutral-400 mt-1">Если выбрать «Работа», «Жильё» или «Услуги» — объявление появится в соответствующей вкладке</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
