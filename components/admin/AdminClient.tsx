@@ -44,6 +44,20 @@ const TYPE_LABELS: Record<ItemType, string> = {
   service: '🔧 Услуга',
 };
 
+// Для listing-типа смотрим на categoryId
+const CATEGORY_TYPE_LABEL: Record<string, string> = {
+  jobs: '💼 Работа',
+  'real-estate': '🏠 Жильё',
+  services: '🔧 Услуга',
+};
+
+function getItemLabel(item: AdminItem): string {
+  if (item._type === 'listing' && item.categoryId && CATEGORY_TYPE_LABEL[item.categoryId]) {
+    return CATEGORY_TYPE_LABEL[item.categoryId];
+  }
+  return TYPE_LABELS[item._type];
+}
+
 export function AdminClient() {
   const { user, loading: authLoading } = useAuthContext();
   const router = useRouter();
@@ -222,7 +236,7 @@ export function AdminClient() {
                 <tr key={item.id} className="hover:bg-neutral-50 transition-colors">
                   <td className="px-4 py-3">
                     <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 whitespace-nowrap">
-                      {TYPE_LABELS[item._type]}
+                      {getItemLabel(item)}
                     </span>
                   </td>
                   <td className="px-4 py-3">
