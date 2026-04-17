@@ -20,6 +20,7 @@ interface AdminItem {
   authorName?: string;
   authorId?: string;
   cityId?: string;
+  categoryId?: string;
   description?: string;
   price?: number;
   priceType?: string;

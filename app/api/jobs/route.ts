@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
     docs.sort((a, b) => new Date(String(b.createdAt ?? '')).getTime() - new Date(String(a.createdAt ?? '')).getTime());
 
     return NextResponse.json({ jobs: docs.slice(0, limitN) }, {
-      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
+      headers: { 'Cache-Control': 'no-store' },
     });
   } catch (err) {
     console.error('[API GET /jobs]', err);

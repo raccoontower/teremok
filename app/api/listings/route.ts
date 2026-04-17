@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     if (categoryId) docs = docs.filter((d) => d.categoryId === categoryId);
 
     return NextResponse.json({ listings: docs }, {
-      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
+      headers: { 'Cache-Control': 'no-store' },
     });
   } catch (err) {
     console.error('[API GET /listings]', err);
