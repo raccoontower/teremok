@@ -16,14 +16,26 @@ export async function GET(req: NextRequest) {
     const limitN = Math.min(parseInt(searchParams.get('limit') ?? '40'), 100);
 
     const db = getAdminDb();
-    const snap = await db.collection('services').orderBy('createdAt', 'desc').limit(limitN).get();
+    // Загружаем из services + объявления с categoryId='services' из listings
+    const [servicesSnap, listingsSnap] = await Promise.all([
+      db.collection('services').orderBy('createdAt', 'desc').limit(limitN).get(),
+      db.collection('listings').orderBy('createdAt', 'desc').limit(100).get(),
+    ]);
 
-    let docs = snap.docs.map((d) => serializeDoc({ id: d.id, ...d.data() }));
+    let docs = servicesSnap.docs.map((d) => serializeDoc({ id: d.id, ...d.data() }));
+    const crossListings = listingsSnap.docs
+      .map((d) => serializeDoc({ id: d.id, ...d.data() }))
+      .filter((d) => d.categoryId === 'services' && d.status === 'active');
+    docs = [...docs, ...crossListings];
+
     docs = docs.filter((d) => d.status === 'active');
+    const seen = new Set<string>();
+    docs = docs.filter(d => { const id = String(d.id); if (seen.has(id)) return false; seen.add(id); return true; });
     if (cityId) docs = docs.filter((d) => d.cityId === cityId);
     if (category) docs = docs.filter((d) => d.category === category);
+    docs.sort((a, b) => new Date(String(b.createdAt ?? '')).getTime() - new Date(String(a.createdAt ?? '')).getTime());
 
-    return NextResponse.json({ services: docs }, {
+    return NextResponse.json({ services: docs.slice(0, limitN) }, {
       headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
     });
   } catch (err) {

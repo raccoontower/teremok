@@ -17,15 +17,27 @@ export async function GET(req: NextRequest) {
     const limitN = Math.min(parseInt(searchParams.get('limit') ?? '40'), 100);
 
     const db = getAdminDb();
-    const snap = await db.collection('housing').orderBy('createdAt', 'desc').limit(limitN).get();
+    // Загружаем из housing + объявления с categoryId='real-estate' из listings
+    const [housingSnap, listingsSnap] = await Promise.all([
+      db.collection('housing').orderBy('createdAt', 'desc').limit(limitN).get(),
+      db.collection('listings').orderBy('createdAt', 'desc').limit(100).get(),
+    ]);
 
-    let docs = snap.docs.map((d) => serializeDoc({ id: d.id, ...d.data() }));
+    let docs = housingSnap.docs.map((d) => serializeDoc({ id: d.id, ...d.data() }));
+    const crossListings = listingsSnap.docs
+      .map((d) => serializeDoc({ id: d.id, ...d.data() }))
+      .filter((d) => d.categoryId === 'real-estate' && d.status === 'active');
+    docs = [...docs, ...crossListings];
+
     docs = docs.filter((d) => d.status === 'active');
+    const seen = new Set<string>();
+    docs = docs.filter(d => { const id = String(d.id); if (seen.has(id)) return false; seen.add(id); return true; });
     if (cityId) docs = docs.filter((d) => d.cityId === cityId);
     if (listingType) docs = docs.filter((d) => d.listingType === listingType);
     if (propertyType) docs = docs.filter((d) => d.propertyType === propertyType);
+    docs.sort((a, b) => new Date(String(b.createdAt ?? '')).getTime() - new Date(String(a.createdAt ?? '')).getTime());
 
-    return NextResponse.json({ listings: docs }, {
+    return NextResponse.json({ listings: docs.slice(0, limitN) }, {
       headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
     });
   } catch (err) {
