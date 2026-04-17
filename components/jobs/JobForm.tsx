@@ -122,7 +122,7 @@ export function JobForm() {
                 : 'bg-white border-primary-600 text-primary-600 hover:bg-primary-50',
             ].join(' ')}
           >
-            💼 Работу — разместить резюме
+            💼 Ищу работу — разместить анкету
           </button>
         </div>
       </div>

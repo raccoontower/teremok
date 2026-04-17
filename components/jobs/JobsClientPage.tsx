@@ -15,7 +15,7 @@ type Tab = JobListingType;
 
 const TABS: { value: Tab; label: string }[] = [
   { value: 'vacancy', label: 'Вакансии' },
-  { value: 'resume', label: 'Резюме' },
+  { value: 'resume', label: 'Ищу работу' },
 ];
 
 /**
@@ -43,7 +43,7 @@ export function JobsClientPage() {
         <h1 className="text-2xl font-bold text-neutral-900">Работа</h1>
         <Link href="/jobs/new">
           <Button variant="primary" size="sm">
-            + {activeTab === 'vacancy' ? 'Разместить вакансию' : 'Разместить резюме'}
+            + {activeTab === 'vacancy' ? 'Разместить вакансию' : 'Разместить анкету'}
           </Button>
         </Link>
       </div>
@@ -98,7 +98,7 @@ export function JobsClientPage() {
         <div className="text-center py-16 text-gray-500">
           <p className="text-4xl mb-3">{activeTab === 'vacancy' ? '💼' : '📄'}</p>
           <p className="text-lg font-medium">
-            {activeTab === 'vacancy' ? 'Вакансий пока нет' : 'Резюме пока нет'}
+            {activeTab === 'vacancy' ? 'Вакансий пока нет' : 'Анкет пока нет'}
           </p>
           <p className="text-sm mt-1">Попробуйте изменить фильтры</p>
         </div>

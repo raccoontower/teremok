@@ -44,7 +44,7 @@ export function Footer() {
             <h4 className="text-white font-semibold text-sm mb-3">Разместить</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href={ROUTES.newListing} className="hover:text-white transition-colors">Объявление</Link></li>
-              <li><Link href={ROUTES.newJob} className="hover:text-white transition-colors">Вакансию или резюме</Link></li>
+              <li><Link href={ROUTES.newJob} className="hover:text-white transition-colors">Вакансию или анкету</Link></li>
               <li><Link href={ROUTES.newHousing} className="hover:text-white transition-colors">Жильё</Link></li>
               <li><Link href={ROUTES.newService} className="hover:text-white transition-colors">Услугу</Link></li>
             </ul>

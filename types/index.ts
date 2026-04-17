@@ -170,7 +170,7 @@ export interface Service {
 
 export const JOB_LISTING_TYPE_LABELS: Record<JobListingType, string> = {
   vacancy: 'Вакансия',
-  resume: 'Резюме',
+  resume: 'Ищу работу',
 } as const;
 
 export const JOB_TYPE_LABELS: Record<JobType, string> = {

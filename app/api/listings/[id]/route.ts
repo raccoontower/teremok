@@ -33,7 +33,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!isOwner && !adminUser) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await req.json();
-    const allowed = ['title', 'description', 'price', 'priceType', 'categoryId', 'cityId', 'status', 'contact', 'photos'];
+    const allowed = ['title', 'description', 'price', 'priceType', 'categoryId', 'listingType', 'cityId', 'status', 'contact', 'photos'];
     const update: Record<string, unknown> = { updatedAt: new Date() };
     for (const key of allowed) {
       if (key in body) update[key] = body[key];

@@ -35,6 +35,23 @@ const CITIES = [
   { value: 'washington', label: 'Вашингтон' },
 ];
 
+// Подкатегории (listingType) для разных категорий
+const SUBCATEGORY_MAP: Record<string, { value: string; label: string }[]> = {
+  jobs: [
+    { value: 'vacancy', label: '💼 Вакансия (работодатель)' },
+    { value: 'resume', label: '🙋 Ищу работу (соискатель)' },
+  ],
+  'real-estate': [
+    { value: 'rent', label: '🔑 Снять / Сдать' },
+    { value: 'sale', label: '🏷️ Купить / Продать' },
+    { value: 'roommate', label: '🤝 Ищу соседа' },
+  ],
+  services: [
+    { value: 'offer', label: '🔧 Предлагаю услугу' },
+    { value: 'request', label: '🙏 Ищу специалиста' },
+  ],
+};
+
 const STATUS_OPTS = [
   { value: 'active', label: '✅ Активно' },
   { value: 'closed', label: '🔒 Закрыто' },
@@ -54,6 +71,7 @@ interface EditItemModalProps {
     cityId?: string;
     status?: string;
     categoryId?: string;
+    listingType?: string;
   };
   onClose: () => void;
   onSaved: (id: string, updates: Record<string, unknown>) => void;
@@ -74,6 +92,10 @@ export function EditItemModal({ item, onClose, onSaved }: EditItemModalProps) {
   const [cityId, setCityId] = useState(item.cityId ?? '');
   const [status, setStatus] = useState(item.status ?? 'active');
   const [categoryId, setCategoryId] = useState(item.categoryId ?? '');
+  const [listingType, setListingType] = useState(item.listingType ?? '');
+
+  // Подкатегории для выбранной категории
+  const subcategories = SUBCATEGORY_MAP[categoryId] ?? [];
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -90,6 +112,7 @@ export function EditItemModal({ item, onClose, onSaved }: EditItemModalProps) {
       const updates: Record<string, unknown> = { title, description, status, cityId };
       if (price) updates.price = parseFloat(price);
       if (categoryId) updates.categoryId = categoryId;
+      if (listingType) updates.listingType = listingType;
       const res = await fetch(`/api/${API_MAP[item._type]}/${item.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -147,7 +170,7 @@ export function EditItemModal({ item, onClose, onSaved }: EditItemModalProps) {
             <label className="block text-sm font-medium text-neutral-700 mb-1">Категория</label>
             <select
               value={categoryId}
-              onChange={e => setCategoryId(e.target.value)}
+              onChange={e => { setCategoryId(e.target.value); setListingType(''); }}
               className="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
             >
               <option value="">— не изменять —</option>
@@ -155,6 +178,29 @@ export function EditItemModal({ item, onClose, onSaved }: EditItemModalProps) {
             </select>
             <p className="text-xs text-neutral-400 mt-1">Если выбрать «Работа», «Жильё» или «Услуги» — объявление появится в соответствующей вкладке</p>
           </div>
+
+          {/* Подкатегория — показывается если у выбранной категории есть варианты */}
+          {subcategories.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">Подкатегория</label>
+              <div className="flex flex-col gap-1.5">
+                {subcategories.map(sub => (
+                  <button
+                    key={sub.value}
+                    type="button"
+                    onClick={() => setListingType(sub.value)}
+                    className={`text-left px-3 py-2.5 rounded-lg border text-sm transition-colors ${
+                      listingType === sub.value
+                        ? 'bg-primary-50 border-primary-500 text-primary-700 font-medium'
+                        : 'bg-white border-neutral-200 text-neutral-700 hover:border-neutral-300'
+                    }`}
+                  >
+                    {sub.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <div>
