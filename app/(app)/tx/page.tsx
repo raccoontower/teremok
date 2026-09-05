@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic'
 export default async function Transactions({ searchParams }: { searchParams: Promise<{ m?: string; kind?: string }> }) {
   const { m, kind } = await searchParams
   const month = /^\d{4}-\d{2}$/.test(m || '') ? m! : ym()
-  const only = kind === 'own' || kind === 'reimbursable' ? kind : undefined
+  const only = kind === 'own' || kind === 'reimbursable' || kind === 'nosite' ? kind : undefined
   const d = await txData(month, only)
   return (
     <div className="lg:max-w-[720px]">
@@ -39,6 +39,17 @@ export default async function Transactions({ searchParams }: { searchParams: Pro
           </div>
         </div>
       </div>
+
+      {d.orphanCount > 0 && (
+        <Link href={`/tx?m=${month}&kind=nosite`}
+              className="mt-3.5 flex items-center justify-between border border-[rgba(242,177,52,.4)] bg-[rgba(242,177,52,.08)] px-4 py-3">
+          <div>
+            <div className="tag text-[var(--own)]">No site</div>
+            <div className="mt-1 text-[13px] text-[var(--muted)]">{d.orphanCount} {d.orphanCount === 1 ? 'entry is' : 'entries are'} not attached to any site</div>
+          </div>
+          <div className="num text-lg text-[var(--own)]">−{money(d.orphanTotal)}</div>
+        </Link>
+      )}
 
       <SharePeriod month={month} />
       <KindFilter month={month} active={only} />

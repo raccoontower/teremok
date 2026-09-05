@@ -124,14 +124,20 @@ async function sitesList(a: All, lines: WageLine[]): Promise<SiteCard[]> {
   })
 }
 /** Все транзакции месяца с итогами — экран истории. */
-export async function txData(month: string, kind?: 'own' | 'reimbursable') {
+export async function txData(month: string, filter?: 'own' | 'reimbursable' | 'nosite') {
   const a = await loadAll(); const { from, to } = monthRange(month)
   const inMonth = a.expenses.filter(e => e.spent_on >= from && e.spent_on < to)
-  const list = kind ? inMonth.filter(e => e.kind === kind) : inMonth
+  const list = filter === 'nosite' ? inMonth.filter(e => !e.site_id)
+    : filter ? inMonth.filter(e => e.kind === filter) : inMonth
+  // траты без объекта не попадают ни в один сайт и не видны в его прибыли —
+  // их надо показывать отдельно, иначе они тихо теряются
+  const orphans = inMonth.filter(e => !e.site_id)
   return {
     entries: entriesOf(a, list),
     own: inMonth.filter(e => e.kind === 'own').reduce((s, e) => s + e.amount, 0),
     reimb: inMonth.filter(e => e.kind === 'reimbursable').reduce((s, e) => s + e.amount, 0),
+    orphanCount: orphans.length,
+    orphanTotal: orphans.reduce((s, e) => s + e.amount, 0),
     sites: a.sites.map(s => ({ id: s.id, name: s.name })),
   }
 }

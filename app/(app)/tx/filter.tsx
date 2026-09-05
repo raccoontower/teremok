@@ -10,5 +10,9 @@ export function KindFilter({ month, active }: { month: string; active?: string }
       {label}
     </button>
   )
-  return <div className="mt-3.5 flex gap-2">{item('All')}{item('Own', 'own', 'var(--own)')}{item('Reimbursable', 'reimbursable', 'var(--reimb)')}</div>
+  return (
+    <div className="mt-3.5 flex gap-2">
+      {item('All')}{item('Own', 'own', 'var(--own)')}{item('Reimb.', 'reimbursable', 'var(--reimb)')}{item('No site', 'nosite', 'var(--own)')}
+    </div>
+  )
 }

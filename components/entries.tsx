@@ -23,7 +23,10 @@ export function Entries({ entries, showSite = true, wide = false, sites = [], ed
               <span className="h-[40px] w-[5px] flex-none" style={{ background: color }} />
               <span className={`min-w-0 flex-1 ${wide ? 'lg:flex lg:items-center lg:gap-4' : ''}`}>
                 <span className={`block truncate text-[15px] font-medium ${wide ? 'lg:w-[190px] lg:flex-none' : ''}`}>{e.vendor}</span>
-                <span className="mt-0.5 block truncate text-xs text-[var(--muted)] lg:mt-0">{meta}</span>
+                <span className="mt-0.5 block truncate text-xs text-[var(--muted)] lg:mt-0">
+                  {!e.siteId && showSite && <span className="text-[var(--own)]">No site · </span>}
+                  {meta.replace(/^No site · /, '')}
+                </span>
                 {e.note && <span className="mt-1 block truncate text-[13px] text-[var(--fg-2)]">{e.note}</span>}
               </span>
             </button>
