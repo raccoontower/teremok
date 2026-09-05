@@ -12,7 +12,7 @@ import { monthRange, today } from './money'
  */
 export type Site = { id: string; name: string; address: string | null; gc_company: string | null; status: string; starts_on: string | null; ends_on: string | null }
 export type Worker = { id: string; name: string; default_pay: 'day_rate' | 'fixed_amount' | 'fixed_percent'; default_rate: number | null; active: boolean; is_partner: boolean }
-export type Expense = { id: string; site_id: string | null; spent_on: string; amount: number; kind: 'reimbursable' | 'own'; category: string; vendor: string | null; receipt_path: string | null; reimbursed_on: string | null; note: string | null }
+export type Expense = { id: string; site_id: string | null; spent_on: string; amount: number; kind: 'reimbursable' | 'own'; category: string; vendor: string | null; receipt_path: string | null; reimbursed_on: string | null; note: string | null; paid_by: string | null }
 type Sched = { worker_id: string; site_id: string; work_day: string }
 type WageLine = { worker_id: string; site_id: string; month: string; days: number; amount: number }
 
@@ -23,12 +23,12 @@ async function loadAll() {
   const [sites, workers, expenses, income, sched, payroll, payouts, partners] = await Promise.all([
     c.from('sites').select('*').order('created_at', { ascending: false }),
     c.from('workers').select('*').order('name'),
-    c.from('expenses').select('id,site_id,spent_on,amount,kind,category,vendor,receipt_path,reimbursed_on,note').order('spent_on', { ascending: false }).order('created_at', { ascending: false }),
+    c.from('expenses').select('id,site_id,spent_on,amount,kind,category,vendor,receipt_path,reimbursed_on,note,paid_by').order('spent_on', { ascending: false }).order('created_at', { ascending: false }),
     c.from('income').select('id,site_id,received_on,amount,note'),
     c.from('schedule').select('worker_id,site_id,work_day'),
-    c.from('payroll').select('id,site_id,worker_id,amount,paid_on,note'),
+    c.from('payroll').select('id,site_id,worker_id,amount,paid_on,note,paid_by'),
     c.from('partner_payouts').select('id,partner_id,site_id,paid_on,amount,note'),
-    c.from('partners').select('id,name,share').order('name'),
+    c.from('partners').select('id,name,share,is_owner').order('name'),
   ])
   for (const r of [sites, workers, expenses, income, sched, payroll, payouts, partners]) if (r.error) throw new Error(r.error.message)
   return {
@@ -37,9 +37,9 @@ async function loadAll() {
     expenses: ((expenses.data || []) as Expense[]).map(e => ({ ...e, amount: n(e.amount) })),
     income: (income.data || []).map(i => ({ ...i, amount: n(i.amount) })) as { id: string; site_id: string; received_on: string; amount: number; note: string | null }[],
     sched: (sched.data || []) as Sched[],
-    payroll: (payroll.data || []).map(p => ({ ...p, amount: n(p.amount) })) as { id: string; site_id: string | null; worker_id: string; amount: number; paid_on: string | null; note: string | null }[],
+    payroll: (payroll.data || []).map(p => ({ ...p, amount: n(p.amount) })) as { id: string; site_id: string | null; worker_id: string; amount: number; paid_on: string | null; note: string | null; paid_by: string | null }[],
     payouts: (payouts.data || []).map(p => ({ ...p, amount: n(p.amount) })) as { id: string; partner_id: string; site_id: string | null; paid_on: string; amount: number; note: string | null }[],
-    partners: (partners.data || []).map(p => ({ ...p, share: n(p.share) })) as { id: string; name: string; share: number }[],
+    partners: (partners.data || []).map(p => ({ ...p, share: n(p.share) })) as { id: string; name: string; share: number; is_owner: boolean }[],
   }
 }
 type All = Awaited<ReturnType<typeof loadAll>>
@@ -157,20 +157,30 @@ export async function splitData(month: string) {
   const t = totalsFor(a, lines, (_, d) => d >= from && d < to, l => l.month === month)
   const allTime = totalsFor(a, lines, () => true, () => true)
   const siteName = new Map(a.sites.map(s => [s.id, s.name]))
-  // Расчёт между партнёрами — накопительный, а не помесячный: перевод в
-  // октябре за сентябрьскую прибыль всё равно закрывает долг. Поэтому доля
-  // считается за выбранный месяц, а «взял / должен» — за всё время.
+
+  /* Расчёт накопительный, а не помесячный: перевод в октябре закрывает
+     сентябрьскую долю. Три слагаемых на человека:
+       cut       — его доля прибыли,
+     + fronted   — сколько он оплатил из своего кармана (свои расходы и
+                   выплаты бригаде): это вложение в общее дело, и оно
+                   возвращается ему до делёжа,
+     − taken     — сколько уже получил переводами.
+     Возмещаемое сюда не входит: его возвращает управляющая компания. */
   const partners = a.partners.map(p => {
     const mine = a.payouts.filter(x => x.partner_id === p.id)
     const takenMonth = mine.filter(x => x.paid_on >= from && x.paid_on < to).reduce((s, x) => s + x.amount, 0)
     const takenAll = mine.reduce((s, x) => s + x.amount, 0)
+    const frontedExpenses = a.expenses.filter(e => e.kind === 'own' && e.paid_by === p.id).reduce((s, e) => s + e.amount, 0)
+    const frontedWages = a.payroll.filter(x => x.paid_by === p.id).reduce((s, x) => s + x.amount, 0)
+    const fronted = frontedExpenses + frontedWages
+    const frontedMonth = a.expenses.filter(e => e.kind === 'own' && e.paid_by === p.id && e.spent_on >= from && e.spent_on < to).reduce((s, e) => s + e.amount, 0)
+      + a.payroll.filter(x => x.paid_by === p.id && (x.paid_on || '') >= from && (x.paid_on || '') < to).reduce((s, x) => s + x.amount, 0)
     const cutAll = allTime.profit * p.share
     return {
       ...p,
-      cut: t.profit * p.share,        // доля за выбранный месяц
-      takenMonth,                     // сколько переведено в этом месяце
-      cutAll, takenAll,
-      balance: cutAll - takenAll,     // > 0 — человеку ещё должны, < 0 — взял лишнего
+      cut: t.profit * p.share, takenMonth, frontedMonth,
+      cutAll, takenAll, fronted,
+      balance: cutAll + fronted - takenAll,   // > 0 — человеку должны
     }
   })
   const payouts = a.payouts
@@ -188,6 +198,11 @@ export async function gcData(siteId: string, from?: string, to?: string) {
 
 /** Объект по умолчанию для нового расхода: где сегодня больше всего людей,
  *  иначе — последний активный. Именно это «угадывание» экономит тап. */
+export async function partnersList() {
+  const { data } = await db().from('partners').select('id,name,is_owner').order('is_owner', { ascending: false })
+  return (data || []) as { id: string; name: string; is_owner: boolean }[]
+}
+
 export async function guessSite() {
   const c = db()
   const [{ data: sched }, { data: sites }] = await Promise.all([

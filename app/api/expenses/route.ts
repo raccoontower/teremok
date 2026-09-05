@@ -21,6 +21,13 @@ export async function POST(req: Request) {
     if (error) return NextResponse.json({ error: `receipt upload: ${error.message}` }, { status: 500 })
   }
 
+  // по умолчанию платит владелец: почти все покупки идут с его карты
+  let paid_by = form.get('paid_by') as string | null
+  if (!paid_by) {
+    const { data } = await client.from('partners').select('id').eq('is_owner', true).maybeSingle()
+    paid_by = data?.id ?? null
+  }
+
   const row = {
     site_id: form.get('site_id') || null,
     spent_on: String(form.get('spent_on') || new Date().toISOString().slice(0, 10)),
@@ -31,6 +38,7 @@ export async function POST(req: Request) {
     entered_by: form.get('entered_by') || null,
     receipt_path,
     ocr_json: form.get('ocr') ? JSON.parse(String(form.get('ocr'))) : null,
+    paid_by,
   }
   const { data, error } = await client.from('expenses').insert(row).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

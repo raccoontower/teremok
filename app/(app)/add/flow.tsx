@@ -5,14 +5,14 @@ import { money, today } from '@/lib/money'
 import { Sheet, SheetRow, STATUS, flash } from '@/components/ui'
 
 type Guess = { vendor: string | null; total: number | null; spent_on: string | null; kind: 'reimbursable' | 'own'; category: string; confidence: string; items: { name: string; amount: number | null }[] }
-type Props = { sites: { id: string; name: string; status: string }[]; guess: string | null; fromSchedule: boolean }
+type Props = { sites: { id: string; name: string; status: string }[]; guess: string | null; fromSchedule: boolean; partners: { id: string; name: string; is_owner: boolean }[] }
 const CATS = ['materials', 'fuel', 'hotel', 'tickets', 'rental', 'insurance', 'amazon', 'food', 'other']
 
 /** Главный сценарий: камера → чтение → подтверждение, ≤10 секунд одним
  *  пальцем. Пока модель читает чек, экран показывает скан и раскрывает поля
  *  по мере «прогресса» — прогресс условный, но ответ приходит за 3–6 с,
  *  и поля успевают появиться к его приходу. */
-export function AddFlow({ sites, guess, fromSchedule }: Props) {
+export function AddFlow({ sites, guess, fromSchedule, partners }: Props) {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
   const [step, setStep] = useState<'camera' | 'reading' | 'confirm'>('camera')
@@ -22,7 +22,9 @@ export function AddFlow({ sites, guess, fromSchedule }: Props) {
   const [g, setG] = useState<Guess | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [sheet, setSheet] = useState<'site' | 'cat' | null>(null)
+  const [sheet, setSheet] = useState<'site' | 'cat' | 'payer' | null>(null)
+  // по умолчанию платит владелец — так почти всегда и есть
+  const [payer, setPayer] = useState(partners.find(p => p.is_owner)?.id || '')
   const [viewer, setViewer] = useState(false)
   const [site, setSite] = useState(guess || '')
   // редактируемые поля подтверждения
@@ -62,6 +64,7 @@ export function AddFlow({ sites, guess, fromSchedule }: Props) {
     if (vendor.trim()) fd.append('vendor', vendor.trim()); fd.append('spent_on', date)
     if (site) fd.append('site_id', site); if (file) fd.append('file', file); if (g) fd.append('ocr', JSON.stringify(g))
     if (note.trim()) fd.append('note', note.trim())
+    if (payer) fd.append('paid_by', payer)
     const r = await fetch('/api/expenses', { method: 'POST', body: fd }); const j = await r.json().catch(() => ({ error: 'bad response' }))
     setBusy(false)
     if (j.error) { setErr(j.error); return }
@@ -153,6 +156,12 @@ export function AddFlow({ sites, guess, fromSchedule }: Props) {
             </button>
           </div>
           {!isReimb && <button onClick={() => setSheet('cat')} className="glass mt-2.5 flex min-h-[44px] w-full items-center justify-between px-3.5 text-sm"><span className="text-[var(--muted)]">Category</span><span>{cat}</span></button>}
+          {partners.length > 1 && (
+            <button onClick={() => setSheet('payer')} className="glass mt-2.5 flex min-h-[44px] w-full items-center justify-between px-3.5 text-sm">
+              <span className="text-[var(--muted)]">Paid by</span>
+              <span>{partners.find(p => p.id === payer)?.name || '—'}</span>
+            </button>
+          )}
 
           {g && g.items.length > 0 && (
             <div className="panel mt-4 rounded-[18px] px-[18px] py-4">
@@ -174,6 +183,11 @@ export function AddFlow({ sites, guess, fromSchedule }: Props) {
         <Sheet title="Site" onClose={() => setSheet(null)}>
           {sites.map(s => <SheetRow key={s.id} label={s.name} sub={s.status} dot={(STATUS[s.status] || STATUS.planned).color} active={site === s.id} onClick={() => { setSite(s.id); setSheet(null) }} />)}
           <SheetRow label="No site" active={!site} onClick={() => { setSite(''); setSheet(null) }} />
+        </Sheet>
+      )}
+      {sheet === 'payer' && (
+        <Sheet title="Whose money" onClose={() => setSheet(null)}>
+          {partners.map(p => <SheetRow key={p.id} label={p.name} sub={p.is_owner ? 'you — the default' : 'partner fronted this one'} active={payer === p.id} onClick={() => { setPayer(p.id); setSheet(null) }} />)}
         </Sheet>
       )}
       {sheet === 'cat' && (

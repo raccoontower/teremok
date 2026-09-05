@@ -33,7 +33,8 @@ export default async function Split({ searchParams }: { searchParams: Promise<{ 
             <div key={p.id}>
               <div className="label-xs">{p.name} · {Math.round(p.share * 100)}%</div>
               <div className="num mt-1.5 text-xl">{money(p.cut)}</div>
-              {p.takenMonth > 0 && <div className="mt-0.5 text-xs text-[var(--muted)]">paid out this month {money(p.takenMonth)}</div>}
+              {p.frontedMonth > 0 && <div className="mt-0.5 text-xs text-[var(--muted)]">paid {money(p.frontedMonth)} from own card</div>}
+              {p.takenMonth > 0 && <div className="mt-0.5 text-xs text-[var(--muted)]">received {money(p.takenMonth)}</div>}
             </div>
           ))}
         </div>
@@ -46,8 +47,13 @@ export default async function Split({ searchParams }: { searchParams: Promise<{ 
         {d.partners.map(p => (
           <div key={p.id} className="glass flex-1 rounded-[20px] p-[18px]">
             <div className="label">{p.name}</div>
-            <div className="mt-2 flex items-baseline justify-between text-xs text-[var(--muted)]"><span>Earned</span><span className="mono text-[var(--fg)]">{money(p.cutAll)}</span></div>
-            <div className="mt-1 flex items-baseline justify-between text-xs text-[var(--muted)]"><span>Paid out</span><span className="mono">{money(p.takenAll)}</span></div>
+            <div className="mt-2 flex items-baseline justify-between text-xs text-[var(--muted)]"><span>Profit share</span><span className="mono text-[var(--fg)]">{money(p.cutAll)}</span></div>
+            {p.fronted > 0 && (
+              <div className="mt-1 flex items-baseline justify-between text-xs text-[var(--muted)]">
+                <span>Own card</span><span className="mono text-[var(--fg)]">+{money(p.fronted)}</span>
+              </div>
+            )}
+            <div className="mt-1 flex items-baseline justify-between text-xs text-[var(--muted)]"><span>Received</span><span className="mono">−{money(p.takenAll)}</span></div>
             <div className="my-3 h-px bg-white/7" />
             <div className="label-xs" style={{ color: p.balance < 0 ? 'var(--reimb)' : 'var(--own)' }}>{p.balance < 0 ? 'Took extra' : 'Still owed'}</div>
             <div className="num mt-1 text-2xl" style={{ color: p.balance < 0 ? 'var(--reimb)' : 'var(--own)' }}>{money(Math.abs(p.balance))}</div>
