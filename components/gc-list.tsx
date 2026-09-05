@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { money, shortDate } from '@/lib/money'
 
-export type GcItem = { id: string; vendor: string; date: string; amount: number; src: string | null; reimbursed: boolean; note?: string | null; items?: number }
+export type GcItem = { id: string; vendor: string; date: string; amount: number; src: string | null; reimbursed: boolean; note?: string | null; kind?: 'own' | 'reimbursable'; items?: number }
 
 /** Список возмещаемых покупок с чеками. Один и тот же для владельца и для
  *  GC по ссылке — отличается только откуда берётся картинка. */
@@ -21,7 +21,7 @@ export function GcList({ items }: { items: GcItem[] }) {
             <div className="mt-0.5 text-xs text-[var(--muted)]">{shortDate(g.date)}{g.items ? ` · ${g.items} items` : ''}{g.reimbursed ? ' · paid back' : ''}</div>
             {g.note && <div className="mt-1 text-[13px] leading-snug text-[var(--fg-2)]">{g.note}</div>}
           </div>
-          <div className="num text-base text-[var(--reimb)]">{money(g.amount, true)}</div>
+          <div className="num text-base" style={{ color: g.kind === 'own' ? 'var(--own)' : 'var(--reimb)' }}>−{money(g.amount, true)}</div>
         </div>
       ))}
       {!items.length && <div className="row px-4 py-6 text-center text-sm text-[var(--muted)]">No reimbursable purchases in this period.</div>}

@@ -222,6 +222,19 @@ export async function partnersList() {
   return (data || []) as { id: string; name: string; is_owner: boolean }[]
 }
 
+/** Все расходы за период по всем объектам — для ссылки, которой делятся с
+ *  партнёром: ему важны и свои траты, и возмещаемые. */
+export async function periodData(from?: string, to?: string) {
+  const a = await loadAll()
+  const list = a.expenses.filter(e => (!from || e.spent_on >= from) && (!to || e.spent_on <= to))
+  return {
+    items: list,
+    entries: entriesOf(a, list),
+    own: list.filter(e => e.kind === 'own').reduce((s, e) => s + e.amount, 0),
+    reimb: list.filter(e => e.kind === 'reimbursable').reduce((s, e) => s + e.amount, 0),
+  }
+}
+
 export async function guessSite() {
   const c = db()
   const [{ data: sched }, { data: sites }] = await Promise.all([

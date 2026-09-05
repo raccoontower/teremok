@@ -4,6 +4,7 @@ import { money, monthName, ym } from '@/lib/money'
 import { Entries } from '@/components/entries'
 import { MonthNav } from '@/components/ui'
 import { KindFilter } from './filter'
+import { SharePeriod } from './share'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,6 +40,7 @@ export default async function Transactions({ searchParams }: { searchParams: Pro
         </div>
       </div>
 
+      <SharePeriod month={month} />
       <KindFilter month={month} active={only} />
       <div className="mt-3">
         <Entries entries={d.entries} sites={d.sites} editable />

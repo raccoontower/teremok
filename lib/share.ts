@@ -5,7 +5,7 @@ async function hmac(secret: string, data: string) {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
   return Buffer.from(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data))).toString('base64url')
 }
-export type SharePayload = { site: string; from?: string; to?: string; exp: number }
+export type SharePayload = { site?: string; from?: string; to?: string; all?: boolean; exp: number }
 export async function signShare(p: Omit<SharePayload, 'exp'>) {
   const body = b64(JSON.stringify({ ...p, exp: Date.now() + 30 * 86400e3 }))
   return `${body}.${await hmac(process.env.APP_SECRET!, body)}`
