@@ -3,6 +3,7 @@ import { splitData } from '@/lib/queries'
 import { money, neg, monthName, ym } from '@/lib/money'
 import { MonthNav } from '@/components/ui'
 import { Payout } from './payout'
+import { SplitExport } from './export'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,6 +47,8 @@ export default async function Split({ searchParams }: { searchParams: Promise<{ 
         <div className="flex items-center justify-between gap-3"><div className="label text-[var(--reimb)]">Reimbursable</div><div className="num text-[22px] text-[var(--reimb)]">{money(t.reimb)}</div></div>
         <div className="mt-2 text-[13px] text-[var(--muted)]">Excluded from the split. It is the GC&rsquo;s money coming back, not profit.</div>
       </div>
+
+      <SplitExport month={month} />
 
       <div className="label mx-0.5 mb-2.5 mt-[26px]">All time</div>
       <div className="row px-4 py-3.5">

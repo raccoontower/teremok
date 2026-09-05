@@ -11,7 +11,7 @@ export default async function GcReport({ params, searchParams }: { params: Promi
   const { id } = await params; const { from, to } = await searchParams
   const d = await gcData(id, from, to); if (!d) notFound()
   const period = d.items.length ? `${shortDate(d.items.at(-1)!.spent_on)} – ${shortDate(d.items[0].spent_on)}` : 'no purchases'
-  const items = d.items.map(e => ({ id: e.id, vendor: e.vendor || e.category, date: e.spent_on, amount: e.amount, src: e.receipt_path ? `/api/file?path=${encodeURIComponent(e.receipt_path)}` : null, reimbursed: !!e.reimbursed_on }))
+  const items = d.items.map(e => ({ id: e.id, vendor: e.vendor || e.category, date: e.spent_on, amount: e.amount, src: e.receipt_path ? `/api/file?path=${encodeURIComponent(e.receipt_path)}` : null, reimbursed: !!e.reimbursed_on, note: e.note }))
   const withReceipt = d.items.filter(e => e.receipt_path).length
   return (
     <div className="lg:max-w-[720px]">
@@ -26,7 +26,7 @@ export default async function GcReport({ params, searchParams }: { params: Promi
       </div>
 
       <GcList items={items} />
-      <GcActions siteId={id} from={from} to={to} outstandingIds={d.items.filter(e => !e.reimbursed_on).map(e => e.id)} />
+      <GcActions siteId={id} from={from} to={to} siteName={d.site.name} outstandingIds={d.items.filter(e => !e.reimbursed_on).map(e => e.id)} />
     </div>
   )
 }

@@ -28,6 +28,9 @@ export function AddFlow({ sites, guess, fromSchedule }: Props) {
   // редактируемые поля подтверждения
   const [vendor, setVendor] = useState(''); const [total, setTotal] = useState(''); const [date, setDate] = useState(today())
   const [kind, setKind] = useState<'reimbursable' | 'own'>('reimbursable'); const [cat, setCat] = useState('materials')
+  // заметка: что именно куплено. По выписке из банка видно только «Amazon $170» —
+  // управляющей компании нужно «25 коннекторов», иначе возмещать нечего.
+  const [note, setNote] = useState('')
 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview) }, [preview])
 
@@ -49,7 +52,7 @@ export function AddFlow({ sites, guess, fromSchedule }: Props) {
     setG(gg); setVendor(gg.vendor || ''); setTotal(gg.total != null ? gg.total.toFixed(2) : ''); setDate(gg.spent_on || today())
     setKind(gg.kind); setCat(gg.category || (gg.kind === 'reimbursable' ? 'materials' : 'other'))
   }
-  function manual() { setG(null); setVendor(''); setTotal(''); setDate(today()); setKind('own'); setCat('other'); setStep('confirm') }
+  function manual() { setG(null); setVendor(''); setTotal(''); setDate(today()); setKind('own'); setCat('other'); setNote(''); setStep('confirm') }
 
   async function save() {
     const amount = Number(total); if (!(amount >= 0) || !total) { setErr('Enter the total'); return }
@@ -58,6 +61,7 @@ export function AddFlow({ sites, guess, fromSchedule }: Props) {
     fd.append('amount', String(amount)); fd.append('kind', kind); fd.append('category', kind === 'reimbursable' ? 'materials' : cat)
     if (vendor.trim()) fd.append('vendor', vendor.trim()); fd.append('spent_on', date)
     if (site) fd.append('site_id', site); if (file) fd.append('file', file); if (g) fd.append('ocr', JSON.stringify(g))
+    if (note.trim()) fd.append('note', note.trim())
     const r = await fetch('/api/expenses', { method: 'POST', body: fd }); const j = await r.json().catch(() => ({ error: 'bad response' }))
     setBusy(false)
     if (j.error) { setErr(j.error); return }
@@ -115,9 +119,10 @@ export function AddFlow({ sites, guess, fromSchedule }: Props) {
       {step === 'confirm' && (
         <div className="rise min-h-0 flex-1 overflow-y-auto pb-6">
           <div className="flex items-start gap-4">
-            <button onClick={() => preview && setViewer(true)} className="h-[94px] w-[74px] flex-none overflow-hidden p-0">
+            <button onClick={() => (preview ? setViewer(true) : fileRef.current?.click())} className="h-[94px] w-[74px] flex-none overflow-hidden p-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {preview ? <img src={preview} alt="" className="thumb h-full w-full" /> : <div className="thumb h-full w-full opacity-40" />}
+              {preview ? <img src={preview} alt="" className="thumb h-full w-full" />
+                       : <div className="thumb flex h-full w-full flex-col items-center justify-center gap-1 text-[10px] leading-tight text-[var(--dim)]"><span className="text-lg">+</span>photo</div>}
             </button>
             <div className="min-w-0 flex-1">
               <input value={vendor} onChange={e => setVendor(e.target.value)} placeholder="Vendor" className="label w-full bg-transparent text-[var(--fg)] placeholder:text-[var(--dim)]" />
@@ -147,7 +152,11 @@ export function AddFlow({ sites, guess, fromSchedule }: Props) {
             </div>
           )}
 
-          <button onClick={save} disabled={busy} className="btn mt-5 min-h-[58px] w-full text-[17px]">{busy ? 'Saving…' : 'Save'}</button>
+          <textarea value={note} onChange={e => setNote(e.target.value)} rows={2}
+                    placeholder={isReimb ? 'What was bought — e.g. 25 connectors, 3/4 EMT' : 'Note (optional)'}
+                    className="field mt-4 resize-none py-3 text-[15px] leading-snug" style={{ minHeight: 64 }} />
+
+          <button onClick={save} disabled={busy} className="btn mt-4 min-h-[58px] w-full text-[17px]">{busy ? 'Saving…' : 'Save'}</button>
           <div className="mt-3 text-center text-xs text-[var(--muted)]">{isReimb ? 'Goes to the GC pile. Profit unchanged.' : 'Real cost. Cuts profit, split 50/50.'}</div>
         </div>
       )}

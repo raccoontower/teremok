@@ -15,7 +15,7 @@ export default async function Shared({ params }: { params: Promise<{ token: stri
   const paths = d.items.map(e => e.receipt_path).filter((x): x is string => !!x)
   const signed = paths.length ? (await db().storage.from('receipts').createSignedUrls(paths, 3600)).data || [] : []
   const src = new Map(signed.map(s => [s.path, s.signedUrl]))
-  const items = d.items.map(e => ({ id: e.id, vendor: e.vendor || e.category, date: e.spent_on, amount: e.amount, src: e.receipt_path ? src.get(e.receipt_path) || null : null, reimbursed: !!e.reimbursed_on }))
+  const items = d.items.map(e => ({ id: e.id, vendor: e.vendor || e.category, date: e.spent_on, amount: e.amount, src: e.receipt_path ? src.get(e.receipt_path) || null : null, reimbursed: !!e.reimbursed_on, note: e.note }))
   const period = d.items.length ? `${shortDate(d.items.at(-1)!.spent_on)} – ${shortDate(d.items[0].spent_on)}` : ''
   return (
     <div className="mx-auto max-w-[720px] px-[18px] py-6">
