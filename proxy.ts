@@ -5,7 +5,7 @@ import { COOKIE, verifyToken } from '@/lib/auth'
  *  страницы — редирект на /login с возвратом туда, куда шёл. */
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
-  if (pathname === '/login' || pathname === '/api/login') return NextResponse.next()
+  if (pathname === '/login' || pathname === '/api/login' || pathname.startsWith('/share/')) return NextResponse.next()
   const secret = process.env.APP_SECRET
   if (!secret) return new NextResponse('APP_SECRET is not set', { status: 500 })
   const ok = await verifyToken(req.cookies.get(COOKIE)?.value, secret)

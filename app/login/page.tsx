@@ -6,20 +6,23 @@ function Form() {
   const [pw, setPw] = useState(''); const [err, setErr] = useState(false); const [busy, setBusy] = useState(false)
   const router = useRouter(); const next = useSearchParams().get('next') || '/'
   async function submit(e: React.FormEvent) {
-    e.preventDefault(); setBusy(true); setErr(false)
+    e.preventDefault(); if (!pw) return
+    setBusy(true); setErr(false)
     const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) })
     setBusy(false)
     if (r.ok) router.replace(next); else setErr(true)
   }
   return (
-    <form onSubmit={submit} className="mx-auto mt-24 max-w-sm space-y-4">
-      <h1 className="text-2xl font-semibold">Teremok</h1>
-      <input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="Пароль" autoFocus
-             className="w-full rounded-xl border border-[var(--line)] bg-[var(--panel)] px-4 py-3" />
-      {err && <p className="text-sm text-red-400">Неверный пароль</p>}
-      <button disabled={busy} className="w-full rounded-xl bg-white py-3 font-medium text-black disabled:opacity-50">
-        {busy ? '…' : 'Войти'}
-      </button>
+    <form onSubmit={submit} className="relative mx-auto flex min-h-dvh max-w-[420px] flex-col justify-center px-[34px]">
+      <div className="grain fixed inset-0" />
+      <div className="serif text-[52px] leading-none tracking-[-.01em]">Teremok</div>
+      <div className="mt-3 text-sm text-[var(--muted)]">Private ledger. One user.</div>
+      <div className="mt-[38px] flex gap-2.5">
+        <input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="Password" autoFocus autoComplete="current-password"
+               className="field min-h-14 flex-1 rounded-2xl text-[17px] tracking-[.18em]" style={err ? { borderColor: 'rgba(242,177,52,.6)' } : undefined} />
+        <button disabled={busy} aria-label="Sign in" className="btn h-14 w-14 flex-none rounded-2xl text-xl">→</button>
+      </div>
+      <div className="mono mt-4 h-4 text-[11px] tracking-[.04em]" style={{ color: err ? 'var(--own)' : 'var(--faint)' }}>{err ? 'WRONG PASSWORD' : busy ? 'CHECKING…' : ''}</div>
     </form>
   )
 }
