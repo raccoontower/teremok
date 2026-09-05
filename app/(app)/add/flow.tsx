@@ -90,15 +90,19 @@ export function AddFlow({ sites, guess, fromSchedule }: Props) {
             {[['top-14 left-8 border-t-2 border-l-2 rounded-tl-lg'], ['top-14 right-8 border-t-2 border-r-2 rounded-tr-lg'], ['bottom-14 left-8 border-b-2 border-l-2 rounded-bl-lg'], ['bottom-14 right-8 border-b-2 border-r-2 rounded-br-lg']].map(([c]) => <div key={c} className={`absolute h-10 w-10 border-[var(--accent)] ${c}`} />)}
             <div className="mono breathe absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[11px] tracking-[.1em] text-[var(--dim)]">FILL THE FRAME WITH THE RECEIPT</div>
           </button>
-          <div className="mt-6 flex flex-none items-center justify-between">
-            <button onClick={manual} className="min-h-11 w-24 text-left text-sm text-[var(--muted)]">Manual<br />entry</button>
-            <button onClick={() => fileRef.current?.click()} aria-label="Take photo" className="relative h-[82px] w-[82px] flex-none border-0 bg-transparent p-0">
+          <div className="mt-5 flex flex-none items-stretch gap-3">
+            {/* ручной ввод — основной путь владельца, поэтому он и крупнее */}
+            <button onClick={manual} className="display flex-1 border border-white/20 bg-white/[.04] px-4 text-left text-[22px] leading-none text-[var(--fg)]">
+              Manual<br />entry
+              <div className="mono mt-1.5 text-[9px] font-normal tracking-[.14em] text-[var(--muted)]">TYPE THE AMOUNT</div>
+            </button>
+            <button onClick={() => fileRef.current?.click()} aria-label="Take photo" className="relative h-[92px] w-[92px] flex-none border-0 bg-transparent p-0">
               {['top-0 left-0 border-t-2 border-l-2', 'top-0 right-0 border-t-2 border-r-2', 'bottom-0 left-0 border-b-2 border-l-2', 'bottom-0 right-0 border-b-2 border-r-2'].map(c => (
                 <span key={c} className={`absolute h-5 w-5 border-[var(--accent)] ${c}`} />
               ))}
               <span className="absolute inset-[10px] bg-[var(--fg)]" />
+              <span className="mono absolute -bottom-4 left-0 right-0 text-center text-[9px] tracking-[.14em] text-[var(--muted)]">SHOOT</span>
             </button>
-            <div className="w-24" />
           </div>
         </div>
       )}

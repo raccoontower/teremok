@@ -11,7 +11,7 @@ import { monthRange, today } from './money'
  * проще тянуть всё и считать в TS, чем городить SQL под каждый срез.
  */
 export type Site = { id: string; name: string; address: string | null; gc_company: string | null; status: string; starts_on: string | null; ends_on: string | null }
-export type Worker = { id: string; name: string; default_pay: 'day_rate' | 'fixed_amount' | 'fixed_percent'; default_rate: number | null; active: boolean }
+export type Worker = { id: string; name: string; default_pay: 'day_rate' | 'fixed_amount' | 'fixed_percent'; default_rate: number | null; active: boolean; is_partner: boolean }
 export type Expense = { id: string; site_id: string | null; spent_on: string; amount: number; kind: 'reimbursable' | 'own'; category: string; vendor: string | null; receipt_path: string | null; reimbursed_on: string | null; note: string | null }
 type Sched = { worker_id: string; site_id: string; work_day: string }
 type WageLine = { worker_id: string; site_id: string; month: string; days: number; amount: number }
@@ -57,6 +57,8 @@ function wageLines(a: All): WageLine[] {
   for (const [k, rows] of groups) {
     const [worker_id, site_id] = k.split('|')
     const w = byWorker.get(worker_id); if (!w) continue
+    // партнёр получает долю в прибыли, а не зарплату — иначе счёт двойной
+    if (w.is_partner) continue
     const rate = w.default_rate || 0
     if (w.default_pay === 'day_rate') {
       const months = new Map<string, number>()
@@ -131,7 +133,7 @@ export async function crewData() {
     const sites = new Set(mine.map(l => l.site_id)).size
     return { ...w, earned, paid, owed: earned - paid, days, sites, payments: a.payroll.filter(p => p.worker_id === w.id).map(p => ({ ...p, site: p.site_id ? siteName.get(p.site_id) || '' : '' })).sort((x, y) => (y.paid_on || '').localeCompare(x.paid_on || '')) }
   })
-  return { workers, sites: a.sites.filter(s => s.status !== 'paid' && s.status !== 'done'), owed: workers.reduce((s, w) => s + Math.max(0, w.owed), 0) }
+  return { workers, sites: a.sites.filter(s => s.status !== 'paid' && s.status !== 'done'), owed: workers.filter(w => !w.is_partner).reduce((s, w) => s + Math.max(0, w.owed), 0) }
 }
 
 export async function weekData(from: string) {

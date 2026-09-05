@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { crewData } from '@/lib/queries'
 import { money, initials } from '@/lib/money'
 import { CrewActions, PayButton } from './actions'
@@ -12,7 +13,7 @@ export default async function Crew() {
       <div className="flex items-end justify-between">
         <div>
           <div className="display text-[30px]">Crew</div>
-          <div className="label mt-1">Owed now · <span className="text-[var(--own)]">{money(d.owed)}</span></div>
+          <div className="label mt-1">Wages owed · <span className="text-[var(--own)]">{money(d.owed)}</span></div>
         </div>
         <CrewActions />
       </div>
@@ -23,15 +24,24 @@ export default async function Crew() {
               <div className="flex h-9 w-9 flex-none items-center justify-center rounded-none border border-white/12 text-xs text-[var(--fg-2)]">{initials(w.name)}</div>
               <div className="min-w-0 flex-1">
                 <div className="text-base font-medium">{w.name}</div>
-                <div className="mt-0.5 text-xs text-[var(--muted)]">{PAY_LABEL[w.default_pay](w.default_rate || 0)} · {w.default_pay === 'day_rate' ? `${w.days} ${w.days === 1 ? 'day' : 'days'}` : `${w.sites} ${w.sites === 1 ? 'site' : 'sites'}`}</div>
+                <div className="mt-0.5 text-xs text-[var(--muted)]">
+                  {w.is_partner
+                    ? <>Partner · paid from the split · {w.days} {w.days === 1 ? 'day' : 'days'}</>
+                    : <>{PAY_LABEL[w.default_pay](w.default_rate || 0)} · {w.default_pay === 'day_rate' ? `${w.days} ${w.days === 1 ? 'day' : 'days'}` : `${w.sites} ${w.sites === 1 ? 'site' : 'sites'}`}</>}
+                </div>
               </div>
-              <PayButton worker={{ id: w.id, name: w.name, owed: w.owed, default_pay: w.default_pay, default_rate: w.default_rate, active: w.active, payments: w.payments }} sites={d.sites} />
+              {w.is_partner
+                ? <Link href="/split" className="btn-ghost flex items-center px-3.5">Split →</Link>
+                : <PayButton worker={{ id: w.id, name: w.name, owed: w.owed, default_pay: w.default_pay, default_rate: w.default_rate, active: w.active, is_partner: w.is_partner, payments: w.payments }} sites={d.sites} />}
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-2 border-t border-white/7 pt-3.5">
+            {!w.is_partner && <div className="mt-4 grid grid-cols-3 gap-2 border-t border-white/7 pt-3.5">
               <div><div className="label-xs">Earned</div><div className="num mt-1 text-base">{money(w.earned)}</div></div>
               <div><div className="label-xs">Paid</div><div className="num mt-1 text-base text-[var(--muted)]">{money(w.paid)}</div></div>
-              <div><div className="label-xs text-[var(--own)]">Owed</div><div className="num mt-1 text-base text-[var(--own)]">{money(w.owed)}</div></div>
-            </div>
+              <div>
+                <div className="label-xs" style={{ color: w.owed < 0 ? 'var(--reimb)' : 'var(--own)' }}>{w.owed < 0 ? 'Over' : 'Owed'}</div>
+                <div className="num mt-1 text-base" style={{ color: w.owed < 0 ? 'var(--reimb)' : 'var(--own)' }}>{money(Math.abs(w.owed))}</div>
+              </div>
+            </div>}
             {w.payments[0]?.note && (
               <div className="mt-3 border-l-2 border-[var(--line)] pl-3 text-[13px] leading-snug text-[var(--muted)]">
                 <span className="mono text-[10px] tracking-[.14em]">LAST · {w.payments[0].paid_on}</span>

@@ -8,11 +8,12 @@ const TABS = [
 ]
 const SIDE = [...TABS.slice(0, 3), { href: '/week', label: 'Schedule' }, { href: '/split', label: 'Partner split' }]
 
-/** Затвор из макета: прямоугольная рамка с точкой, без круглых форм. */
-function CameraIcon({ size = 26 }: { size?: number }) {
+/** Плюс из отрезков — в макете нет круглых форм и иконочных шрифтов. */
+function PlusIcon({ size = 24 }: { size?: number }) {
   return (
-    <span className="flex items-center justify-center border-2 border-white" style={{ width: size, height: size * 0.73 }}>
-      <span className="bg-white" style={{ width: size * .27, height: size * .27 }} />
+    <span className="relative block" style={{ width: size, height: size }}>
+      <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-white" />
+      <span className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2 bg-white" />
     </span>
   )
 }
@@ -33,7 +34,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <Link key={t.label} href={t.href} className="flex min-h-[42px] items-center rounded-[11px] px-3 text-sm"
                 style={active(t.href) ? { background: 'rgba(255,255,255,.05)', color: 'var(--fg)' } : { color: 'var(--muted)' }}>{t.label}</Link>
         ))}
-        <Link href="/add" className="btn mono mt-3 flex items-center justify-center gap-2.5 text-[11px] uppercase tracking-[.14em]"><CameraIcon size={20} /> Add from receipt</Link>
+        <Link href="/add" className="btn mono mt-3 flex items-center justify-center gap-2.5 text-[11px] uppercase tracking-[.14em]"><PlusIcon size={16} /> Add expense</Link>
         <div className="mono label-xs mt-auto px-3 text-[var(--faint)]">{new Date().toLocaleString('en-US', { month: 'short', year: 'numeric' }).toUpperCase()}</div>
       </aside>
 
@@ -47,10 +48,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <div className="w-[82px] flex-none" />
             {TABS.slice(2).map(t => <Tab key={t.href} {...t} on={active(t.href)} />)}
           </div>
-          <Link href="/add" aria-label="Add from receipt"
+          <Link href="/add" aria-label="Add expense"
                 className="absolute bottom-[44px] left-1/2 z-40 flex h-[74px] w-[74px] -translate-x-1/2 flex-col items-center justify-center gap-1.5 border border-white/28 bg-[var(--accent)]">
-            <CameraIcon />
-            <span className="mono text-[9px] tracking-[.14em] text-white">SHOOT</span>
+            <PlusIcon />
+            <span className="mono text-[9px] tracking-[.14em] text-white">EXPENSE</span>
           </Link>
         </div>
       )}

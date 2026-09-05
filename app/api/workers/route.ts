@@ -4,9 +4,11 @@ import { db } from '@/lib/db'
 const PAY = ['day_rate', 'fixed_amount', 'fixed_percent']
 export async function POST(req: Request) {
   const b = await req.json()
-  if (!b?.name?.trim() || !PAY.includes(b.default_pay)) return NextResponse.json({ error: 'name and pay type required' }, { status: 400 })
+  // у партнёра способ оплаты не спрашиваем: он не получает зарплату
+  if (!b?.name?.trim() || (!b.is_partner && !PAY.includes(b.default_pay))) return NextResponse.json({ error: 'name and pay type required' }, { status: 400 })
+  if (b.is_partner) b.default_pay = b.default_pay || 'day_rate'
   const { data, error } = await db().from('workers')
-    .insert({ name: b.name.trim(), default_pay: b.default_pay, default_rate: Number(b.default_rate) || null, phone: b.phone || null }).select().single()
+    .insert({ name: b.name.trim(), default_pay: b.default_pay, default_rate: Number(b.default_rate) || null, phone: b.phone || null, is_partner: !!b.is_partner }).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
 }
@@ -18,6 +20,7 @@ export async function PATCH(req: Request) {
   if (PAY.includes(b.default_pay)) patch.default_pay = b.default_pay
   if (b.default_rate !== undefined) patch.default_rate = Number(b.default_rate) || null
   if (b.active !== undefined) patch.active = !!b.active
+  if (b.is_partner !== undefined) patch.is_partner = !!b.is_partner
   const { error } = await db().from('workers').update(patch).eq('id', b.id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })

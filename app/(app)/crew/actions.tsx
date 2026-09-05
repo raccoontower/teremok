@@ -9,11 +9,11 @@ const PAY = [
   { v: 'fixed_percent', label: '% of site income', sub: 'share of what the GC pays for the site' },
 ]
 type Payment = { id: string; amount: number; paid_on: string | null; note: string | null; site: string }
-type W = { id: string; name: string; owed: number; default_pay: string; default_rate: number | null; active: boolean; payments: Payment[] }
+type W = { id: string; name: string; owed: number; default_pay: string; default_rate: number | null; active: boolean; is_partner: boolean; payments: Payment[] }
 
 export function CrewActions() {
   const [open, setOpen] = useState(false)
-  const [f, setF] = useState({ name: '', default_pay: 'day_rate', default_rate: '' })
+  const [f, setF] = useState({ name: '', default_pay: 'day_rate', default_rate: '', is_partner: false })
   const { run, busy, err } = useAction()
   return (
     <>
@@ -21,10 +21,14 @@ export function CrewActions() {
       {open && (
         <Sheet title="New worker" onClose={() => setOpen(false)}>
           <input className="field" placeholder="Name" value={f.name} onChange={e => setF({ ...f, name: e.target.value })} autoFocus />
-          {PAY.map(p => <SheetRow key={p.v} label={p.label} sub={p.sub} active={f.default_pay === p.v} onClick={() => setF({ ...f, default_pay: p.v })} />)}
-          <input className="field num" inputMode="decimal" placeholder={f.default_pay === 'fixed_percent' ? 'Percent, e.g. 8' : 'Rate, e.g. 280'} value={f.default_rate} onChange={e => setF({ ...f, default_rate: e.target.value })} />
+          <SheetRow label="Partner" sub="works on sites, paid from the profit split — no wage"
+                    active={f.is_partner} onClick={() => setF({ ...f, is_partner: !f.is_partner })} />
+          {!f.is_partner && <>
+            {PAY.map(p => <SheetRow key={p.v} label={p.label} sub={p.sub} active={f.default_pay === p.v} onClick={() => setF({ ...f, default_pay: p.v })} />)}
+            <input className="field num" inputMode="decimal" placeholder={f.default_pay === 'fixed_percent' ? 'Percent, e.g. 8' : 'Rate, e.g. 280'} value={f.default_rate} onChange={e => setF({ ...f, default_rate: e.target.value })} />
+          </>}
           {err && <div className="text-sm text-[var(--own)]">{err}</div>}
-          <button disabled={busy || !f.name.trim()} onClick={async () => { if (await run('/api/workers', f)) { setOpen(false); setF({ name: '', default_pay: 'day_rate', default_rate: '' }) } }} className="btn mt-2">Save</button>
+          <button disabled={busy || !f.name.trim()} onClick={async () => { if (await run('/api/workers', f)) { setOpen(false); setF({ name: '', default_pay: 'day_rate', default_rate: '', is_partner: false }) } }} className="btn mt-2">Save</button>
         </Sheet>
       )}
     </>
@@ -39,7 +43,7 @@ export function PayButton({ worker, sites }: { worker: W; sites: { id: string; n
   const [sheet, setSheet] = useState<'pay' | 'edit' | null>(null)
   const [amount, setAmount] = useState(''); const [site, setSite] = useState('')
   const [note, setNote] = useState(''); const [paidOn, setPaidOn] = useState(() => new Date().toISOString().slice(0, 10))
-  const [f, setF] = useState({ default_pay: worker.default_pay, default_rate: String(worker.default_rate ?? '') })
+  const [f, setF] = useState({ default_pay: worker.default_pay, default_rate: String(worker.default_rate ?? ''), is_partner: worker.is_partner })
   const { run, busy, err } = useAction()
   return (
     <>
@@ -81,9 +85,13 @@ export function PayButton({ worker, sites }: { worker: W; sites: { id: string; n
       )}
       {sheet === 'edit' && (
         <Sheet title={worker.name} onClose={() => setSheet(null)}>
-          {PAY.map(p => <SheetRow key={p.v} label={p.label} sub={p.sub} active={f.default_pay === p.v} onClick={() => setF({ ...f, default_pay: p.v })} />)}
-          <input className="field num" inputMode="decimal" placeholder="Rate" value={f.default_rate} onChange={e => setF({ ...f, default_rate: e.target.value })} />
-          <div className="mt-1 text-xs text-[var(--muted)]">Changing the rate recalculates what is earned for all scheduled days.</div>
+          <SheetRow label="Partner" sub="works on sites, paid from the profit split — no wage"
+                    active={f.is_partner} onClick={() => setF({ ...f, is_partner: !f.is_partner })} />
+          {!f.is_partner && <>
+            {PAY.map(p => <SheetRow key={p.v} label={p.label} sub={p.sub} active={f.default_pay === p.v} onClick={() => setF({ ...f, default_pay: p.v })} />)}
+            <input className="field num" inputMode="decimal" placeholder="Rate" value={f.default_rate} onChange={e => setF({ ...f, default_rate: e.target.value })} />
+            <div className="mt-1 text-xs text-[var(--muted)]">Changing the rate recalculates what is earned for all scheduled days.</div>
+          </>}
           {err && <div className="text-sm text-[var(--own)]">{err}</div>}
           <button disabled={busy} onClick={async () => { if (await run('/api/workers', { id: worker.id, ...f }, 'PATCH')) setSheet(null) }} className="btn mt-2">Save</button>
           <button disabled={busy} onClick={async () => { if (await run('/api/workers', { id: worker.id, active: !worker.active }, 'PATCH')) setSheet(null) }} className="btn-ghost">{worker.active ? 'Mark as left the crew' : 'Back to the crew'}</button>
