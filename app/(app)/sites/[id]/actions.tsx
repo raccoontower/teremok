@@ -10,7 +10,7 @@ export function SiteActions({ site }: { site: Site }) {
   const [amount, setAmount] = useState(''); const [note, setNote] = useState('')
   const { run, busy, err } = useAction()
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-none items-center gap-2">
       <button onClick={() => setSheet('contract')} className="btn-ghost px-3.5">Contract</button>
       <button onClick={() => setSheet('income')} className="btn-ghost px-3.5">+ Paid</button>
       <button onClick={() => setSheet('status')} aria-label="Change status"><StatusPill status={site.status} size="md" /></button>

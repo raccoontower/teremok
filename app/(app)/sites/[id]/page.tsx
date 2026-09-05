@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import { siteData } from '@/lib/queries'
 import { money, neg, initials, shortDate } from '@/lib/money'
 import { Entries } from '@/components/entries'
-import { StatusPill } from '@/components/ui'
 import { SiteActions } from './actions'
 
 export const dynamic = 'force-dynamic'
@@ -20,7 +19,7 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
         <div className="display text-[30px]">{site.name}</div>
         <SiteActions site={site} />
       </div>
-      <div className="mt-0.5 text-[13px] text-[var(--muted)]">{[site.address, site.gc_company, dates].filter(Boolean).join(' · ') || <StatusPill status={site.status} />}</div>
+      <div className="mt-0.5 text-[13px] text-[var(--muted)]">{[site.address, site.gc_company, dates].filter(Boolean).join(' · ') || 'no address yet'}</div>
 
       <div className="panel mt-[18px] p-[22px]">
         <div className="label">Site profit</div>
@@ -29,6 +28,38 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
           <div><div className="label-xs">Income</div><div className="num mt-1.5 text-[17px]">{money(t.income)}</div></div>
           <div><div className="label-xs">Own</div><div className="num mt-1.5 text-[17px] text-[var(--own)]">{neg(t.own)}</div></div>
           <div><div className="label-xs">Wages</div><div className="num mt-1.5 text-[17px] text-[var(--own)]">{neg(t.wages)}</div></div>
+        </div>
+      </div>
+
+      <div className="panel mt-3">
+        <div className="panel-head">
+          <div className="tag">GC balance</div>
+          <div className="tag text-[var(--dim)]">{gc.owed > 0 ? 'owes us' : 'settled'}</div>
+        </div>
+        <div className="px-4 py-4">
+          <div className="grid grid-cols-3 gap-2.5">
+            <div>
+              <div className="label-xs">Contract</div>
+              <div className="num mt-1.5 text-lg">{gc.contract == null ? '—' : money(gc.contract)}</div>
+            </div>
+            <div>
+              <div className="label-xs text-[var(--reimb)]">Paid</div>
+              <div className="num mt-1.5 text-lg text-[var(--reimb)]">{money(gc.paidWork)}</div>
+            </div>
+            <div>
+              <div className="label-xs text-[var(--own)]">Owed for work</div>
+              <div className="num mt-1.5 text-lg text-[var(--own)]">{gc.contract == null ? '—' : money(gc.workOwed)}</div>
+            </div>
+          </div>
+          {gc.contract == null && <div className="mt-3 text-[13px] text-[var(--muted)]">Tap Contract above to set what the GC pays for the work.</div>}
+          <div className="mt-3.5 flex items-baseline justify-between border-t border-white/7 pt-3">
+            <div className="tag">Materials to reimburse</div>
+            <div className="num text-[var(--reimb)]">{money(gc.materialsOwed)}</div>
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <div className="tag">Total the GC owes</div>
+            <div className="num text-[22px]" style={{ color: gc.owed > 0 ? 'var(--own)' : 'var(--reimb)' }}>{money(gc.owed)}</div>
+          </div>
         </div>
       </div>
 
