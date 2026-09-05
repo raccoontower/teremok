@@ -43,9 +43,19 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
       </div>
 
       <div className="reimb-panel flex flex-col px-[18px] py-4 lg:mt-[18px] lg:px-7 lg:py-6">
-        <div className="tag text-[var(--reimb)]">Reimbursable / GC owes</div>
-        <div className="num mt-2.5 text-[38px] leading-none text-[var(--reimb)] lg:text-[44px]">{money(d.reimbOut)}</div>
-        <div className="mt-1.5 text-[13px] text-[var(--muted)]">{d.receipts} {d.receipts === 1 ? 'receipt' : 'receipts'} · {d.outSites} {d.outSites === 1 ? 'site' : 'sites'} · GC pays this back</div>
+        <div className="tag text-[var(--reimb)]">GC owes us</div>
+        <div className="num mt-2.5 text-[38px] leading-none text-[var(--reimb)] lg:text-[44px]">{money(d.reimbOut + d.workOwed)}</div>
+        <div className="mt-2 flex gap-5">
+          <div>
+            <div className="label-xs text-[var(--muted)]">For work</div>
+            <div className="num mt-1 text-lg text-[var(--reimb)]">{money(d.workOwed)}</div>
+          </div>
+          <div>
+            <div className="label-xs text-[var(--muted)]">Materials</div>
+            <div className="num mt-1 text-lg text-[var(--reimb)]">{money(d.reimbOut)}</div>
+          </div>
+        </div>
+        <div className="mt-2 text-[13px] text-[var(--muted)]">{d.receipts} {d.receipts === 1 ? 'receipt' : 'receipts'} · {d.outSites} {d.outSites === 1 ? 'site' : 'sites'}</div>
         <Link href="/sites" className="btn-reimb mt-4 flex items-center justify-center lg:mt-auto">GC report →</Link>
       </div>
 

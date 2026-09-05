@@ -10,7 +10,7 @@ import { monthRange, today } from './money'
  * (payroll — только выплаты). Данных мало (4 человека, сотни строк), поэтому
  * проще тянуть всё и считать в TS, чем городить SQL под каждый срез.
  */
-export type Site = { id: string; name: string; address: string | null; gc_company: string | null; status: string; starts_on: string | null; ends_on: string | null }
+export type Site = { id: string; name: string; address: string | null; gc_company: string | null; status: string; starts_on: string | null; ends_on: string | null; contract_amount: number | null }
 export type Worker = { id: string; name: string; default_pay: 'day_rate' | 'fixed_amount' | 'fixed_percent'; default_rate: number | null; active: boolean; is_partner: boolean }
 export type Expense = { id: string; site_id: string | null; spent_on: string; amount: number; kind: 'reimbursable' | 'own'; category: string; vendor: string | null; receipt_path: string | null; reimbursed_on: string | null; note: string | null; paid_by: string | null }
 type Sched = { worker_id: string; site_id: string; work_day: string }
@@ -32,7 +32,7 @@ async function loadAll() {
   ])
   for (const r of [sites, workers, expenses, income, sched, payroll, payouts, partners]) if (r.error) throw new Error(r.error.message)
   return {
-    sites: (sites.data || []) as Site[],
+    sites: ((sites.data || []) as Site[]).map(s => ({ ...s, contract_amount: s.contract_amount == null ? null : n(s.contract_amount) })),
     workers: ((workers.data || []) as Worker[]).map(w => ({ ...w, default_rate: w.default_rate == null ? null : n(w.default_rate) })),
     expenses: ((expenses.data || []) as Expense[]).map(e => ({ ...e, amount: n(e.amount) })),
     income: (income.data || []).map(i => ({ ...i, amount: n(i.amount) })) as { id: string; site_id: string; received_on: string; amount: number; note: string | null }[],
@@ -74,6 +74,9 @@ function wageLines(a: All): WageLine[] {
 }
 
 export type SiteTotals = { income: number; own: number; wages: number; profit: number; reimb: number; reimbOut: number; receipts: number }
+/** Долг управляющей компании: за работу (контракт минус полученное) и за
+ *  материалы (невозмещённые чеки). Считаются раздельно — закрываются тоже. */
+export type GcBalance = { contract: number | null; paidWork: number; workOwed: number; materialsOwed: number; owed: number }
 function totalsFor(a: All, lines: WageLine[], pick: (siteId: string | null, date: string) => boolean, wagePick: (l: WageLine) => boolean): SiteTotals {
   const t = { income: 0, own: 0, wages: 0, profit: 0, reimb: 0, reimbOut: 0, receipts: 0 }
   for (const i of a.income) if (pick(i.site_id, i.received_on)) t.income += i.amount
@@ -100,13 +103,25 @@ export async function homeData(month: string) {
   // «висит на GC» — всегда за всё время: чек августа не перестаёт быть долгом в сентябре
   const out = totalsFor(a, lines, () => true, () => false)
   const outSites = new Set(a.expenses.filter(e => e.kind === 'reimbursable' && !e.reimbursed_on).map(e => e.site_id)).size
+  const cards = await sitesList(a, lines)
+  const workOwed = cards.reduce((s, c) => s + c.gc.workOwed, 0)
+  const contracted = cards.reduce((s, c) => s + (c.contract_amount || 0), 0)
   const active = a.sites.filter(s => s.status === 'active').length
-  return { totals: t, reimbOut: out.reimbOut, receipts: out.receipts, outSites, active, entries: entriesOf(a, a.expenses.slice(0, 40)), count: a.expenses.length, sites: await sitesList(a, lines) }
+  return { totals: t, reimbOut: out.reimbOut, receipts: out.receipts, outSites, active, workOwed, contracted, entries: entriesOf(a, a.expenses.slice(0, 40)), count: a.expenses.length, sites: cards }
 }
 
-export type SiteCard = Site & SiteTotals
+export type SiteCard = Site & SiteTotals & { gc: GcBalance }
+function gcBalance(site: Site, t: SiteTotals): GcBalance {
+  const contract = site.contract_amount
+  const workOwed = contract == null ? 0 : Math.max(0, contract - t.income)
+  return { contract, paidWork: t.income, workOwed, materialsOwed: t.reimbOut, owed: workOwed + t.reimbOut }
+}
+
 async function sitesList(a: All, lines: WageLine[]): Promise<SiteCard[]> {
-  return a.sites.map(s => ({ ...s, ...totalsFor(a, lines, id => id === s.id, l => l.site_id === s.id) }))
+  return a.sites.map(s => {
+    const t = totalsFor(a, lines, id => id === s.id, l => l.site_id === s.id)
+    return { ...s, ...t, gc: gcBalance(s, t) }
+  })
 }
 /** Все транзакции месяца с итогами — экран истории. */
 export async function txData(month: string, kind?: 'own' | 'reimbursable') {
@@ -127,12 +142,13 @@ export async function siteData(id: string) {
   const a = await loadAll(); const lines = wageLines(a)
   const site = a.sites.find(s => s.id === id); if (!site) return null
   const totals = totalsFor(a, lines, sid => sid === id, l => l.site_id === id)
+  const gc = gcBalance(site, totals)
   const crew = a.workers.map(w => {
     const mine = lines.filter(l => l.site_id === id && l.worker_id === w.id)
     return { id: w.id, name: w.name, days: mine.reduce((s, l) => s + l.days, 0), earned: mine.reduce((s, l) => s + l.amount, 0) }
   }).filter(c => c.days > 0)
   const income = a.income.filter(i => i.site_id === id).sort((x, y) => y.received_on.localeCompare(x.received_on))
-  return { site, totals, crew, entries: entriesOf(a, a.expenses.filter(e => e.site_id === id)), income }
+  return { site, totals, gc, crew, entries: entriesOf(a, a.expenses.filter(e => e.site_id === id)), income }
 }
 
 export async function crewData() {

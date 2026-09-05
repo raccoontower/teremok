@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 export default async function SitePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const d = await siteData(id); if (!d) notFound()
-  const { site, totals: t } = d
+  const { site, totals: t, gc } = d
   const dates = site.starts_on ? `${shortDate(site.starts_on)} – ${site.ends_on ? shortDate(site.ends_on) : 'ongoing'}` : ''
   return (
     <div className="lg:max-w-[720px]">
