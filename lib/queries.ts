@@ -87,10 +87,10 @@ function totalsFor(a: All, lines: WageLine[], pick: (siteId: string | null, date
   return t
 }
 
-export type Entry = { id: string; vendor: string; amount: number; kind: Expense['kind']; site: string; siteId: string | null; date: string; receipt: string | null; category: string }
+export type Entry = { id: string; vendor: string; amount: number; kind: Expense['kind']; site: string; siteId: string | null; date: string; receipt: string | null; category: string; note: string | null }
 function entriesOf(a: All, list: Expense[]): Entry[] {
   const name = new Map(a.sites.map(s => [s.id, s.name]))
-  return list.map(e => ({ id: e.id, vendor: e.vendor || e.category, amount: e.amount, kind: e.kind, site: e.site_id ? name.get(e.site_id) || '—' : 'No site', siteId: e.site_id, date: e.spent_on, receipt: e.receipt_path, category: e.category }))
+  return list.map(e => ({ id: e.id, vendor: e.vendor || e.category, amount: e.amount, kind: e.kind, site: e.site_id ? name.get(e.site_id) || '—' : 'No site', siteId: e.site_id, date: e.spent_on, receipt: e.receipt_path, category: e.category, note: e.note }))
 }
 
 export async function homeData(month: string) {
@@ -108,6 +108,19 @@ export type SiteCard = Site & SiteTotals
 async function sitesList(a: All, lines: WageLine[]): Promise<SiteCard[]> {
   return a.sites.map(s => ({ ...s, ...totalsFor(a, lines, id => id === s.id, l => l.site_id === s.id) }))
 }
+/** Все транзакции месяца с итогами — экран истории. */
+export async function txData(month: string, kind?: 'own' | 'reimbursable') {
+  const a = await loadAll(); const { from, to } = monthRange(month)
+  const inMonth = a.expenses.filter(e => e.spent_on >= from && e.spent_on < to)
+  const list = kind ? inMonth.filter(e => e.kind === kind) : inMonth
+  return {
+    entries: entriesOf(a, list),
+    own: inMonth.filter(e => e.kind === 'own').reduce((s, e) => s + e.amount, 0),
+    reimb: inMonth.filter(e => e.kind === 'reimbursable').reduce((s, e) => s + e.amount, 0),
+    sites: a.sites.map(s => ({ id: s.id, name: s.name })),
+  }
+}
+
 export async function sitesData() { const a = await loadAll(); return sitesList(a, wageLines(a)) }
 
 export async function siteData(id: string) {

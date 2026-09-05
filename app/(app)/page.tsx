@@ -51,9 +51,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
 
       <div>
         <div className="mb-2.5 mt-[26px] flex items-baseline justify-between px-0.5 lg:mt-3.5">
-          <div className="tag">Recent entries</div><div className="tag text-[var(--dim)]">{d.count} rec</div>
+          <div className="tag">Recent entries</div>
+          <Link href={`/tx?m=${month}`} className="tag text-[var(--accent-2)]">All {d.count} →</Link>
         </div>
-        <Entries entries={d.entries} wide />
+        <Entries entries={d.entries} sites={d.sites.map(s => ({ id: s.id, name: s.name }))} editable wide />
       </div>
 
       <div className="hidden lg:block">

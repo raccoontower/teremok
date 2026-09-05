@@ -45,6 +45,7 @@ export function Week({ from, today, days, sites, workers }: Props) {
           <div className="label mt-1">{fmt(from, { month: 'short', day: 'numeric' })} – {fmt(to, { month: 'short', day: 'numeric' })}</div>
         </div>
         <div className="flex gap-2">
+          <button onClick={() => router.push('/crew')} className="btn-ghost px-3.5">Crew</button>
           <button onClick={() => router.push(`/week?d=${addDays(from, -7)}`)} className="h-11 w-11 rounded-none border border-white/9 text-[15px] text-[var(--muted)]">‹</button>
           <button onClick={() => router.push(`/week?d=${addDays(from, 7)}`)} className="h-11 w-11 rounded-none border border-white/9 text-[15px] text-[var(--muted)]">›</button>
         </div>

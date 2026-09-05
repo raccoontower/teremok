@@ -15,7 +15,10 @@ export default async function Crew() {
           <div className="display text-[30px]">Crew</div>
           <div className="label mt-1">Wages owed · <span className="text-[var(--own)]">{money(d.owed)}</span></div>
         </div>
-        <CrewActions />
+        <div className="flex items-center gap-2">
+          <Link href="/week" className="btn-ghost flex items-center px-3.5">Week →</Link>
+          <CrewActions />
+        </div>
       </div>
       <div className="mt-5 flex flex-col gap-2.5">
         {d.workers.map(w => (

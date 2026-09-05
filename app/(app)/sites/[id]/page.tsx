@@ -48,7 +48,7 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
             {d.income.map(i => (
               <div key={i.id} className="row flex items-center gap-3 px-3.5 py-3">
                 <div className="min-w-0 flex-1"><div className="text-[15px]">{i.note || 'Payment'}</div><div className="mt-0.5 text-xs text-[var(--muted)]">{shortDate(i.received_on)}</div></div>
-                <div className="num text-base">{money(i.amount, true)}</div>
+                <div className="num text-base text-[var(--reimb)]">+{money(i.amount, true)}</div>
               </div>
             ))}
           </div>
@@ -69,7 +69,7 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
       </div>
 
       <div className="label mx-0.5 mb-2.5 mt-[26px]">Timeline</div>
-      <Entries entries={d.entries} showSite={false} />
+      <Entries entries={d.entries} showSite={false} sites={[{ id: site.id, name: site.name }]} editable />
     </div>
   )
 }

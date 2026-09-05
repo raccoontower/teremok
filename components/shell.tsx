@@ -2,11 +2,13 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+// четыре слота вокруг кнопки расхода. Расписание живёт на экране бригады:
+// оно про тех же людей, и попасть туда в один тап оттуда естественно.
 const TABS = [
-  { href: '/', label: 'Home', n: '01' }, { href: '/sites', label: 'Sites', n: '02' },
-  { href: '/crew', label: 'Crew', n: '03' }, { href: '/week', label: 'Week', n: '04' },
+  { href: '/', label: 'Home', n: '01' }, { href: '/tx', label: 'Money', n: '02' },
+  { href: '/sites', label: 'Sites', n: '03' }, { href: '/crew', label: 'Crew', n: '04' },
 ]
-const SIDE = [...TABS.slice(0, 3), { href: '/week', label: 'Schedule' }, { href: '/split', label: 'Partner split' }]
+const SIDE = [{ href: '/', label: 'Home' }, { href: '/tx', label: 'Transactions' }, { href: '/sites', label: 'Sites' }, { href: '/crew', label: 'Crew & wages' }, { href: '/week', label: 'Schedule' }, { href: '/split', label: 'Partner split' }]
 
 /** Плюс из отрезков — в макете нет круглых форм и иконочных шрифтов. */
 function PlusIcon({ size = 24 }: { size?: number }) {
