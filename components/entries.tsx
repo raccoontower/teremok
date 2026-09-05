@@ -16,7 +16,7 @@ export function Entries({ entries, showSite = true, wide = false }: { entries: E
         const meta = [showSite ? e.site : null, shortDate(e.date), e.kind === 'reimbursable' ? 'GC pays back' : 'own cost'].filter(Boolean).join(' · ')
         return (
           <div key={e.id} className="row flex items-center gap-3 px-3.5 py-3">
-            <div className="h-[38px] w-[3px] flex-none rounded-full" style={{ background: color }} />
+            <div className="h-[40px] w-[5px] flex-none" style={{ background: color }} />
             <div className={`min-w-0 flex-1 ${wide ? 'lg:flex lg:items-center lg:gap-4' : ''}`}>
               <div className={`truncate text-[15px] font-medium ${wide ? 'lg:w-[190px] lg:flex-none' : ''}`}>{e.vendor}</div>
               <div className="mt-0.5 truncate text-xs text-[var(--muted)] lg:mt-0">{meta}</div>

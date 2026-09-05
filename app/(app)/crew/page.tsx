@@ -11,7 +11,7 @@ export default async function Crew() {
     <div className="lg:max-w-[720px]">
       <div className="flex items-end justify-between">
         <div>
-          <div className="serif text-[30px]">Crew</div>
+          <div className="display text-[30px]">Crew</div>
           <div className="label mt-1">Owed now · <span className="text-[var(--own)]">{money(d.owed)}</span></div>
         </div>
         <CrewActions />
@@ -20,7 +20,7 @@ export default async function Crew() {
         {d.workers.map(w => (
           <div key={w.id} className="panel p-[18px]" style={w.active ? undefined : { opacity: .5 }}>
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-white/12 text-xs text-[var(--fg-2)]">{initials(w.name)}</div>
+              <div className="flex h-9 w-9 flex-none items-center justify-center rounded-none border border-white/12 text-xs text-[var(--fg-2)]">{initials(w.name)}</div>
               <div className="min-w-0 flex-1">
                 <div className="text-base font-medium">{w.name}</div>
                 <div className="mt-0.5 text-xs text-[var(--muted)]">{PAY_LABEL[w.default_pay](w.default_rate || 0)} · {w.default_pay === 'day_rate' ? `${w.days} ${w.days === 1 ? 'day' : 'days'}` : `${w.sites} ${w.sites === 1 ? 'site' : 'sites'}`}</div>

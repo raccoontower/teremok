@@ -11,7 +11,7 @@ export default async function Sites() {
   return (
     <div className="lg:max-w-[720px]">
       <div className="flex items-end justify-between">
-        <div><div className="serif text-[30px]">Sites</div><div className="label mt-1">{sites.length} {sites.length === 1 ? 'tower' : 'towers'}</div></div>
+        <div><div className="display text-[30px]">Sites</div><div className="label mt-1">{sites.length} {sites.length === 1 ? 'tower' : 'towers'}</div></div>
         <NewSite />
       </div>
       <div className="mt-5 flex flex-col gap-2.5">

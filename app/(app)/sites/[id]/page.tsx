@@ -17,7 +17,7 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
     <div className="lg:max-w-[720px]">
       <Link href="/sites" className="flex min-h-11 items-center text-sm text-[var(--muted)]">‹ Sites</Link>
       <div className="mt-1.5 flex items-center justify-between gap-2.5">
-        <div className="serif text-[30px]">{site.name}</div>
+        <div className="display text-[30px]">{site.name}</div>
         <SiteActions site={site} />
       </div>
       <div className="mt-0.5 text-[13px] text-[var(--muted)]">{[site.address, site.gc_company, dates].filter(Boolean).join(' · ') || <StatusPill status={site.status} />}</div>
@@ -59,7 +59,7 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
       <div className="flex flex-col gap-2">
         {d.crew.map(c => (
           <div key={c.id} className="row flex items-center gap-3 px-3.5 py-3">
-            <div className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-full border border-white/12 text-xs text-[var(--fg-2)]">{initials(c.name)}</div>
+            <div className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-none border border-white/12 text-xs text-[var(--fg-2)]">{initials(c.name)}</div>
             <div className="min-w-0 flex-1 text-[15px]">{c.name}</div>
             <div className="text-[13px] text-[var(--muted)]">{c.days} {c.days === 1 ? 'day' : 'days'}</div>
             <div className="num text-[15px] text-[var(--own)]">{money(c.earned)}</div>

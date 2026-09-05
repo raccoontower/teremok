@@ -16,7 +16,7 @@ export default async function GcReport({ params, searchParams }: { params: Promi
   return (
     <div className="lg:max-w-[720px]">
       <Link href={`/sites/${id}`} className="no-print flex min-h-11 items-center text-sm text-[var(--muted)]">‹ Site</Link>
-      <div className="serif mt-1.5 text-[30px]">GC report</div>
+      <div className="display mt-1.5 text-[30px]">GC report</div>
       <div className="mt-1 text-[13px] text-[var(--muted)]">{[d.site.name, d.site.address, d.site.gc_company, period].filter(Boolean).join(' · ')}</div>
 
       <div className="reimb-panel mt-[18px] px-[22px] py-5">

@@ -19,7 +19,7 @@ export default async function Shared({ params }: { params: Promise<{ token: stri
   const period = d.items.length ? `${shortDate(d.items.at(-1)!.spent_on)} – ${shortDate(d.items[0].spent_on)}` : ''
   return (
     <div className="mx-auto max-w-[720px] px-[18px] py-6">
-      <div className="serif text-[30px]">Reimbursable purchases</div>
+      <div className="display text-[30px]">Reimbursable purchases</div>
       <div className="mt-1 text-[13px] text-[var(--muted)]">{[d.site.name, d.site.address, period].filter(Boolean).join(' · ')}</div>
       <div className="reimb-panel mt-[18px] px-[22px] py-5">
         <div className="label text-[var(--reimb)]">Total</div>

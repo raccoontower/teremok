@@ -154,12 +154,27 @@ export async function splitData(month: string) {
   const a = await loadAll(); const lines = wageLines(a); const { from, to } = monthRange(month)
   const t = totalsFor(a, lines, (_, d) => d >= from && d < to, l => l.month === month)
   const allTime = totalsFor(a, lines, () => true, () => true)
+  const siteName = new Map(a.sites.map(s => [s.id, s.name]))
+  // Расчёт между партнёрами — накопительный, а не помесячный: перевод в
+  // октябре за сентябрьскую прибыль всё равно закрывает долг. Поэтому доля
+  // считается за выбранный месяц, а «взял / должен» — за всё время.
   const partners = a.partners.map(p => {
-    const taken = a.payouts.filter(x => x.partner_id === p.id && x.paid_on >= from && x.paid_on < to).reduce((s, x) => s + x.amount, 0)
-    const takenAll = a.payouts.filter(x => x.partner_id === p.id).reduce((s, x) => s + x.amount, 0)
-    return { ...p, cut: t.profit * p.share, taken, owed: t.profit * p.share - taken, cutAll: allTime.profit * p.share, takenAll, owedAll: allTime.profit * p.share - takenAll }
+    const mine = a.payouts.filter(x => x.partner_id === p.id)
+    const takenMonth = mine.filter(x => x.paid_on >= from && x.paid_on < to).reduce((s, x) => s + x.amount, 0)
+    const takenAll = mine.reduce((s, x) => s + x.amount, 0)
+    const cutAll = allTime.profit * p.share
+    return {
+      ...p,
+      cut: t.profit * p.share,        // доля за выбранный месяц
+      takenMonth,                     // сколько переведено в этом месяце
+      cutAll, takenAll,
+      balance: cutAll - takenAll,     // > 0 — человеку ещё должны, < 0 — взял лишнего
+    }
   })
-  return { totals: t, partners, sites: a.sites.map(s => ({ id: s.id, name: s.name })) }
+  const payouts = a.payouts
+    .map(x => ({ ...x, partner: a.partners.find(p => p.id === x.partner_id)?.name || '—', site: x.site_id ? siteName.get(x.site_id) || '' : '' }))
+    .sort((x, y) => y.paid_on.localeCompare(x.paid_on))
+  return { totals: t, allTime, partners, payouts, sites: a.sites.map(s => ({ id: s.id, name: s.name })) }
 }
 
 export async function gcData(siteId: string, from?: string, to?: string) {

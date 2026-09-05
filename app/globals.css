@@ -1,39 +1,60 @@
 @import "tailwindcss";
 
-/* Тёмный, потому что вводить будут с телефона на площадке; контраст цифр
-   важнее декора. Цвет — только для смысла: зелёный = возмещаемое (GC вернёт),
-   янтарный = своё (наши деньги). Всё остальное — монохром и один акцент. */
+/* Промышленный «build»-язык из макета: нулевые скругления, сетка на фоне,
+   узкий гротеск заголовками, моноширинный для цифр и микро-подписей.
+   Цвет по-прежнему только смысловой: зелёный — возмещаемое (GC вернёт),
+   янтарный — своё. Вводят с телефона на площадке, поэтому контраст цифр
+   важнее декора. */
 :root {
-  --bg: #07090d; --panel: #0e1218; --panel-2: #141a22; --line: rgba(255,255,255,.08);
-  --fg: #eef1f5; --fg-2: #c9cfd9; --muted: #8a93a3; --dim: #5c6472; --faint: #3f454f;
-  --reimb: #34d17d; --own: #f2b134; --accent: #2a73e8; --accent-2: #7aa8f2;
+  --bg: #07090d; --panel: #0e1218; --panel-2: #141a22;
+  --line: rgba(255,255,255,.12); --line-soft: rgba(255,255,255,.07);
+  --fg: #eef1f5; --fg-2: #c9cfd9; --muted: #8a93a3; --dim: #5c6472; --faint: #4d5461;
+  --reimb: #34d17d; --own: #f2b134; --accent: #2a73e8; --accent-2: #8fb4f5;
 }
 html { color-scheme: dark; }
-body { background: var(--bg); color: var(--fg); font-family: var(--font-sans), system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-input, button, select, textarea { font-family: inherit; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body), Helvetica, sans-serif; -webkit-font-smoothing: antialiased;
+  background-image: linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+input, button, select, textarea { font-family: inherit; border-radius: 0; }
 input:focus, select:focus, textarea:focus { outline: none; }
 ::-webkit-scrollbar { width: 0; height: 0; }
 
-.serif { font-family: var(--font-serif), Georgia, serif; }
-.mono  { font-family: var(--font-mono), ui-monospace, monospace; }
-.num   { font-family: var(--font-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
-.label { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.display { font-family: var(--font-display), Impact, sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; }
+.mono { font-family: var(--font-mono), ui-monospace, monospace; }
+.num  { font-family: var(--font-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+/* микро-подпись: моноширинный капс с широким трекингом — им размечен весь макет */
+.tag    { font-family: var(--font-mono), ui-monospace, monospace; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.label  { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .label-xs { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 
-/* стекло: полупрозрачная панель с подсвеченной верхней кромкой, без теней */
-.panel { border-radius: 22px; border: 1px solid var(--line); background: linear-gradient(180deg, var(--panel-2), var(--panel)); box-shadow: inset 0 1px 0 rgba(255,255,255,.1); }
-.row   { border-radius: 16px; border: 1px solid rgba(255,255,255,.06); background: linear-gradient(180deg, rgba(255,255,255,.032), rgba(255,255,255,.008)); }
-.glass { border-radius: 14px; border: 1px solid rgba(255,255,255,.1); background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.012)); }
-.reimb-panel { border-radius: 22px; border: 1px solid rgba(52,209,125,.28); background: linear-gradient(180deg, rgba(52,209,125,.1), rgba(52,209,125,.02)); }
-.field { width: 100%; min-height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,.1); background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.012)); color: var(--fg); font-size: 16px; }
+.panel { border: 1px solid var(--line); background: var(--panel); }
+/* уголки-засечки: держат «чертёжный» характер, рисуются без лишней разметки */
+.ticks { position: relative; }
+.ticks::before, .ticks::after { content: ''; position: absolute; width: 12px; height: 12px; pointer-events: none; }
+.ticks::before { top: -1px; left: -1px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+.ticks::after { bottom: -1px; right: -1px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+.panel-head { display: flex; align-items: center; justify-content: space-between; padding: 9px 16px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.035); }
+.row { border: 1px solid rgba(255,255,255,.09); background: rgba(255,255,255,.022); }
+.glass { border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); }
+.reimb-panel { border: 1px solid rgba(52,209,125,.3); border-left: 4px solid var(--reimb); background: rgba(52,209,125,.07); }
+
+.field { width: 100%; min-height: 52px; padding: 0 16px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--fg); font-size: 16px; }
 .field::placeholder { color: var(--dim); }
 select.field { appearance: none; }
-.btn { min-height: 52px; border-radius: 14px; border: 0; background: var(--accent); color: #fff; font-size: 16px; font-weight: 500; cursor: pointer; }
+.btn { min-height: 52px; border: 0; background: var(--accent); color: #fff; font-size: 16px; font-weight: 500; cursor: pointer; }
 .btn:disabled { opacity: .5; cursor: default; }
-.btn-ghost { min-height: 44px; border-radius: 12px; border: 1px solid rgba(255,255,255,.12); background: transparent; color: var(--fg); font-size: 13px; cursor: pointer; }
-.btn-reimb { min-height: 44px; border-radius: 12px; border: 1px solid rgba(52,209,125,.3); background: transparent; color: var(--reimb); font-size: 13px; cursor: pointer; }
-.thumb { border-radius: 6px; border: 1px solid rgba(255,255,255,.12); background: #0b0e13 repeating-linear-gradient(100deg, rgba(255,255,255,.07) 0 2px, transparent 2px 6px); object-fit: cover; }
+.btn-ghost { min-height: 44px; border: 1px solid rgba(255,255,255,.14); background: transparent; color: var(--fg); font-family: var(--font-mono), monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+.btn-accent { min-height: 44px; border: 1px solid rgba(42,115,232,.4); background: rgba(42,115,232,.12); color: var(--accent-2); font-family: var(--font-mono), monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+.btn-reimb { min-height: 44px; border: 1px solid rgba(52,209,125,.3); background: transparent; color: var(--reimb); font-family: var(--font-mono), monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+.thumb { border: 1px solid rgba(255,255,255,.12); background: #0b0e13 repeating-linear-gradient(100deg, rgba(255,255,255,.07) 0 2px, transparent 2px 6px); object-fit: cover; }
 
+/* штриховка-разделитель: ею в макете отбит блок «не в прибыли» */
+.hatch { height: 6px; flex: 1; background: repeating-linear-gradient(135deg, rgba(52,209,125,.5) 0 5px, transparent 5px 10px); }
+.hatch-white { height: 3px; background: repeating-linear-gradient(135deg, rgba(255,255,255,.5) 0 6px, transparent 6px 12px); }
 .grain { pointer-events: none; opacity: .055; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E"); }
 
 @keyframes tk-sweep { 0% { top: -4%; opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
@@ -44,7 +65,8 @@ select.field { appearance: none; }
 .sweep { position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); box-shadow: 0 0 22px 6px rgba(42,115,232,.45); animation: tk-sweep 1.15s cubic-bezier(.4,0,.6,1) infinite; }
 
 @media print {
-  body { background: #fff; color: #000; }
+  body { background: #fff; color: #000; background-image: none; }
   .no-print { display: none !important; }
-  .panel, .row, .reimb-panel { border-color: #ccc; background: #fff; box-shadow: none; }
+  .panel, .row, .reimb-panel, .glass { border-color: #ccc; background: #fff; }
+  .ticks::before, .ticks::after { display: none; }
 }

@@ -8,8 +8,8 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
   return (
     <div className="fixed inset-0 z-40 flex flex-col justify-end lg:items-center lg:justify-center">
       <button onClick={onClose} aria-label="close" className="absolute inset-0 border-0 bg-[rgba(4,6,9,.72)]" />
-      <div className="rise relative max-h-[86dvh] overflow-y-auto rounded-t-[26px] border-t border-white/12 bg-[var(--panel)] px-[18px] pb-8 pt-3 lg:w-[440px] lg:rounded-[26px] lg:border">
-        <div className="mx-auto mb-4 h-1 w-11 rounded-full bg-white/16 lg:hidden" />
+      <div className="rise relative max-h-[86dvh] overflow-y-auto rounded-none border-t border-white/12 bg-[var(--panel)] px-[18px] pb-8 pt-3 lg:w-[440px] lg:rounded-[26px] lg:border">
+        <div className="mx-auto mb-4 h-1 w-11 rounded-none bg-white/16 lg:hidden" />
         <div className="label mb-3">{title}</div>
         <div className="flex flex-col gap-2">{children}</div>
       </div>
@@ -21,7 +21,7 @@ export function SheetRow({ label, sub, dot, active, onClick }: { label: string; 
   return (
     <button onClick={onClick} className="flex min-h-14 w-full items-center gap-3 rounded-[14px] border px-4 text-left text-[15px]"
             style={{ borderColor: active ? 'rgba(42,115,232,.5)' : 'rgba(255,255,255,.08)', background: active ? 'rgba(42,115,232,.12)' : 'rgba(255,255,255,.03)' }}>
-      {dot && <span className="h-2 w-2 flex-none rounded-full" style={{ background: dot }} />}
+      {dot && <span className="h-2 w-2 flex-none rounded-none" style={{ background: dot }} />}
       <span className="min-w-0 flex-1">{label}{sub && <span className="mt-0.5 block text-xs text-[var(--muted)]">{sub}</span>}</span>
     </button>
   )
@@ -33,7 +33,7 @@ export function Toast({ title, sub, tone = 'reimb' }: { title: string; sub?: str
   return (
     <div className="rise fixed inset-x-4 bottom-[130px] z-50 flex items-center gap-3 rounded-[18px] border px-[18px] py-4 lg:inset-x-auto lg:bottom-8 lg:right-8 lg:w-[380px]"
          style={{ borderColor: color, background: 'rgba(12,16,20,.97)' }}>
-      <span className="h-2.5 w-2.5 flex-none rounded-full" style={{ background: color }} />
+      <span className="h-2.5 w-2.5 flex-none rounded-none" style={{ background: color }} />
       <div className="min-w-0 flex-1">
         <div className="text-sm font-medium" style={{ color }}>{title}</div>
         {sub && <div className="mt-0.5 text-xs text-[var(--muted)]">{sub}</div>}
@@ -65,9 +65,9 @@ export function ReceiptViewer({ path, title, sub, onClose }: { path: string; tit
     <div className="fixed inset-0 z-50 flex flex-col bg-[rgba(4,6,9,.97)] p-[18px]">
       <div className="flex items-center justify-between">
         <div><div className="text-[15px] font-medium">{title}</div><div className="mt-0.5 text-xs text-[var(--muted)]">{sub}</div></div>
-        <button onClick={onClose} className="h-11 w-11 rounded-full border border-white/12 text-base">✕</button>
+        <button onClick={onClose} className="h-11 w-11 rounded-none border border-white/12 text-base">✕</button>
       </div>
-      <div className="mt-[18px] min-h-0 flex-1 overflow-auto rounded-2xl border border-white/10 bg-[#0b0e13]">
+      <div className="mt-[18px] min-h-0 flex-1 overflow-auto rounded-none border border-white/10 bg-[#0b0e13]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={`/api/file?path=${encodeURIComponent(path)}`} alt={title} className="mx-auto max-h-full w-auto max-w-full" />
       </div>
@@ -89,7 +89,7 @@ export function Thumb({ path, onClick, size = 'sm', tone }: { path: string | nul
 
 export function StatusPill({ status, size = 'sm' }: { status: string; size?: 'sm' | 'md' }) {
   const c = STATUS[status] || STATUS.planned
-  return <span className={`label-xs rounded-full border ${size === 'md' ? 'px-2.5 py-1.5' : 'px-2 py-1'}`} style={{ color: c.color, borderColor: c.border }}>{status}</span>
+  return <span className={`label-xs rounded-none border ${size === 'md' ? 'px-2.5 py-1.5' : 'px-2 py-1'}`} style={{ color: c.color, borderColor: c.border }}>{status}</span>
 }
 export const STATUS: Record<string, { color: string; border: string }> = {
   planned: { color: '#8a93a3', border: 'rgba(255,255,255,.14)' },
@@ -105,8 +105,8 @@ export function MonthNav({ month, base }: { month: string; base: string }) {
   const go = (by: number) => { const [y, m] = month.split('-').map(Number); const d = new Date(Date.UTC(y, m - 1 + by, 1)); router.push(`${base}?m=${d.toISOString().slice(0, 7)}`) }
   return (
     <div className="flex gap-2">
-      <button onClick={() => go(-1)} className="h-11 w-11 rounded-xl border border-white/9 text-[15px] text-[var(--muted)]">‹</button>
-      <button onClick={() => go(1)} className="h-11 w-11 rounded-xl border border-white/9 text-[15px] text-[var(--muted)]">›</button>
+      <button onClick={() => go(-1)} className="h-11 w-11 rounded-none border border-white/9 text-[15px] text-[var(--muted)]">‹</button>
+      <button onClick={() => go(1)} className="h-11 w-11 rounded-none border border-white/9 text-[15px] text-[var(--muted)]">›</button>
     </div>
   )
 }

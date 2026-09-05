@@ -15,8 +15,10 @@ function Form() {
   return (
     <form onSubmit={submit} className="relative mx-auto flex min-h-dvh max-w-[420px] flex-col justify-center px-[34px]">
       <div className="grain fixed inset-0" />
-      <div className="serif text-[52px] leading-none tracking-[-.01em]">Teremok</div>
-      <div className="mt-3 text-sm text-[var(--muted)]">Private ledger. One user.</div>
+      <div className="tag flex items-center gap-2.5"><span className="h-px w-[26px] bg-[var(--accent)]" />Ledger / 01</div>
+      <div className="display mt-3.5 text-[62px] font-bold leading-[.92]">Tere<span className="text-[var(--accent)]">m</span>ok</div>
+      <div className="hatch-white mt-4" />
+      <div className="mt-3.5 text-sm text-[var(--muted)]">Private ledger. One user.</div>
       <div className="mt-[38px] flex gap-2.5">
         <input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="Password" autoFocus autoComplete="current-password"
                className="field min-h-14 flex-1 rounded-2xl text-[17px] tracking-[.18em]" style={err ? { borderColor: 'rgba(242,177,52,.6)' } : undefined} />

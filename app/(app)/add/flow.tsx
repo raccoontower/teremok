@@ -92,7 +92,12 @@ export function AddFlow({ sites, guess, fromSchedule }: Props) {
           </button>
           <div className="mt-6 flex flex-none items-center justify-between">
             <button onClick={manual} className="min-h-11 w-24 text-left text-sm text-[var(--muted)]">Manual<br />entry</button>
-            <button onClick={() => fileRef.current?.click()} aria-label="Take photo" className="h-[78px] w-[78px] flex-none rounded-full border-[3px] border-white/90 bg-transparent p-[5px]"><div className="h-full w-full rounded-full bg-[var(--fg)]" /></button>
+            <button onClick={() => fileRef.current?.click()} aria-label="Take photo" className="relative h-[82px] w-[82px] flex-none border-0 bg-transparent p-0">
+              {['top-0 left-0 border-t-2 border-l-2', 'top-0 right-0 border-t-2 border-r-2', 'bottom-0 left-0 border-b-2 border-l-2', 'bottom-0 right-0 border-b-2 border-r-2'].map(c => (
+                <span key={c} className={`absolute h-5 w-5 border-[var(--accent)] ${c}`} />
+              ))}
+              <span className="absolute inset-[10px] bg-[var(--fg)]" />
+            </button>
             <div className="w-24" />
           </div>
         </div>
@@ -104,7 +109,7 @@ export function AddFlow({ sites, guess, fromSchedule }: Props) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {preview && <img src={preview} alt="" className="h-full w-full object-cover opacity-70" />}
             <div className="sweep" />
-            <div className="mono absolute bottom-3 left-3 rounded-md px-2 py-1 text-[10px] tracking-[.12em] text-[var(--accent)]" style={{ background: 'rgba(7,9,13,.8)' }}>READING {Math.round(p * 100)}%</div>
+            <div className="mono absolute bottom-3 left-3 rounded-none px-2 py-1 text-[10px] tracking-[.12em] text-[var(--accent)]" style={{ background: 'rgba(7,9,13,.8)' }}>READING {Math.round(p * 100)}%</div>
           </div>
           <div className="panel mt-5 rounded-[20px] p-5">
             <Row label="Vendor" show={!!g && p > 0.62}><span className="text-[17px] font-medium">{g?.vendor || (p > 0.85 ? '—' : '')}</span></Row>
@@ -174,9 +179,9 @@ export function AddFlow({ sites, guess, fromSchedule }: Props) {
       )}
       {viewer && preview && (
         <div className="fixed inset-0 z-50 flex flex-col bg-[rgba(4,6,9,.97)] p-[18px]" onClick={() => setViewer(false)}>
-          <div className="flex items-center justify-between"><div className="text-[15px] font-medium">{vendor || 'Receipt'}</div><button className="h-11 w-11 rounded-full border border-white/12">✕</button></div>
+          <div className="flex items-center justify-between"><div className="text-[15px] font-medium">{vendor || 'Receipt'}</div><button className="h-11 w-11 rounded-none border border-white/12">✕</button></div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <div className="mt-[18px] min-h-0 flex-1 overflow-auto rounded-2xl border border-white/10"><img src={preview} alt="" className="mx-auto max-w-full" /></div>
+          <div className="mt-[18px] min-h-0 flex-1 overflow-auto rounded-none border border-white/10"><img src={preview} alt="" className="mx-auto max-w-full" /></div>
         </div>
       )}
     </div>

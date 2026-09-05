@@ -2,21 +2,24 @@
 import { useState } from 'react'
 import { Sheet, useAction } from '@/components/ui'
 
+/** Перевод доли: деньги ушли этому партнёру. Себе владелец записывает так же —
+ *  иначе не видно, сколько он уже забрал, а сколько ещё числится за делом. */
 export function Payout({ partner, sites }: { partner: { id: string; name: string; owed: number }; sites: { id: string; name: string }[] }) {
-  const [open, setOpen] = useState(false); const [amount, setAmount] = useState(''); const [site, setSite] = useState('')
+  const [open, setOpen] = useState(false); const [amount, setAmount] = useState(''); const [site, setSite] = useState(''); const [note, setNote] = useState('')
   const { run, busy, err } = useAction()
   return (
     <>
-      <button onClick={() => { setAmount(partner.owed > 0 ? String(Math.round(partner.owed)) : ''); setOpen(true) }} className="btn-ghost mt-3.5 w-full">Record payout</button>
+      <button onClick={() => { setAmount(partner.owed > 0 ? String(Math.round(partner.owed)) : ''); setOpen(true) }} className="btn-ghost mt-3.5 w-full">Record transfer</button>
       {open && (
-        <Sheet title={`Payout · ${partner.name}`} onClose={() => setOpen(false)}>
+        <Sheet title={`Transfer to ${partner.name}`} onClose={() => setOpen(false)}>
           <input className="field num text-2xl" inputMode="decimal" placeholder="$0" value={amount} onChange={e => setAmount(e.target.value)} autoFocus />
+          <input className="field" placeholder="Note — e.g. Zelle, for August" value={note} onChange={e => setNote(e.target.value)} />
           <select className="field" value={site} onChange={e => setSite(e.target.value)}>
             <option value="">Site — not specified</option>
             {sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
           {err && <div className="text-sm text-[var(--own)]">{err}</div>}
-          <button disabled={busy || !(Number(amount) > 0)} onClick={async () => { if (await run('/api/payouts', { partner_id: partner.id, amount: Number(amount), site_id: site || null })) setOpen(false) }} className="btn mt-2">Save</button>
+          <button disabled={busy || !(Number(amount) > 0)} onClick={async () => { if (await run('/api/payouts', { partner_id: partner.id, amount: Number(amount), site_id: site || null, note: note || null })) { setOpen(false); setNote('') } }} className="btn mt-2">Save</button>
         </Sheet>
       )}
     </>

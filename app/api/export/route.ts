@@ -41,10 +41,13 @@ export async function GET(req: Request) {
         ['Wages', (-t.wages).toFixed(2)],
         ['Profit', t.profit.toFixed(2)],
         [],
-        ['Partner', 'Share', 'Cut', 'Taken', 'Owed'],
-        ...d.partners.map(p => [p.name, `${Math.round(p.share * 100)}%`, p.cut.toFixed(2), p.taken.toFixed(2), p.owed.toFixed(2)]),
+        ['Partner', 'Share', 'Cut this month', 'Earned all time', 'Paid out all time', 'Balance'],
+        ...d.partners.map(p => [p.name, `${Math.round(p.share * 100)}%`, p.cut.toFixed(2), p.cutAll.toFixed(2), p.takenAll.toFixed(2), p.balance.toFixed(2)]),
         [],
         ['Reimbursable (not in the split)', t.reimb.toFixed(2)],
+        [],
+        ['Transfers', 'Date', 'Partner', 'Amount', 'Note'],
+        ...d.payouts.map(x => ['', x.paid_on, x.partner, x.amount.toFixed(2), x.note || '']),
       ])
     } else {
       body = [
@@ -56,11 +59,18 @@ export async function GET(req: Request) {
         ''.padEnd(46, '-'),
         `${pad('PROFIT', 28)}${money(t.profit, true).padStart(14)}`,
         '',
-        ...d.partners.map(p =>
-          `${pad(`${p.name} (${Math.round(p.share * 100)}%)`, 28)}${money(p.cut, true).padStart(14)}\n` +
-          `${pad('  taken', 28)}${money(p.taken, true).padStart(14)}\n` +
-          `${pad('  owed', 28)}${money(p.owed, true).padStart(14)}`),
+        ...d.partners.map(p => `${pad(`${p.name} (${Math.round(p.share * 100)}%)`, 28)}${money(p.cut, true).padStart(14)}`),
         '',
+        'SETTLEMENT — ALL TIME',
+        ''.padEnd(46, '-'),
+        ...d.partners.map(p =>
+          `${pad(p.name, 28)}\n` +
+          `${pad('  earned', 28)}${money(p.cutAll, true).padStart(14)}\n` +
+          `${pad('  paid out', 28)}${money(p.takenAll, true).padStart(14)}\n` +
+          `${pad(p.balance < 0 ? '  took extra' : '  still owed', 28)}${money(Math.abs(p.balance), true).padStart(14)}`),
+        '',
+        ...(d.payouts.length ? ['TRANSFERS', ''.padEnd(46, '-'),
+          ...d.payouts.slice(0, 30).map(x => `${pad(shortDate(x.paid_on), 10)}${pad(x.partner + (x.note ? ` · ${x.note}` : ''), 22)}${money(x.amount, true).padStart(14)}`), ''] : []),
         `Reimbursable, not in the split: ${money(t.reimb, true)}`,
         'That is the GC’s money coming back, not profit.',
       ].join('\n')

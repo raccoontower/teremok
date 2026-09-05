@@ -29,9 +29,9 @@ export function GcList({ items }: { items: GcItem[] }) {
         <div className="no-print fixed inset-0 z-50 flex flex-col bg-[rgba(4,6,9,.97)] p-[18px]">
           <div className="flex items-center justify-between">
             <div><div className="text-[15px] font-medium">{v.vendor}</div><div className="mt-0.5 text-xs text-[var(--muted)]">{money(v.amount, true)} · {shortDate(v.date)}</div></div>
-            <button onClick={() => setV(null)} className="h-11 w-11 rounded-full border border-white/12 text-base">✕</button>
+            <button onClick={() => setV(null)} className="h-11 w-11 rounded-none border border-white/12 text-base">✕</button>
           </div>
-          <div className="mt-[18px] min-h-0 flex-1 overflow-auto rounded-2xl border border-white/10 bg-[#0b0e13]">
+          <div className="mt-[18px] min-h-0 flex-1 overflow-auto rounded-none border border-white/10 bg-[#0b0e13]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={v.src} alt={v.vendor} className="mx-auto max-w-full" />
           </div>

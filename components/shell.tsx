@@ -3,15 +3,16 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const TABS = [
-  { href: '/', label: 'Home' }, { href: '/sites', label: 'Sites' },
-  { href: '/crew', label: 'Crew' }, { href: '/week', label: 'Week' },
+  { href: '/', label: 'Home', n: '01' }, { href: '/sites', label: 'Sites', n: '02' },
+  { href: '/crew', label: 'Crew', n: '03' }, { href: '/week', label: 'Week', n: '04' },
 ]
 const SIDE = [...TABS.slice(0, 3), { href: '/week', label: 'Schedule' }, { href: '/split', label: 'Partner split' }]
 
+/** Затвор из макета: прямоугольная рамка с точкой, без круглых форм. */
 function CameraIcon({ size = 26 }: { size?: number }) {
   return (
-    <span className="flex items-center justify-center rounded-full border-2 border-white/95" style={{ width: size, height: size }}>
-      <span className="rounded-full bg-white" style={{ width: size * .27, height: size * .27 }} />
+    <span className="flex items-center justify-center border-2 border-white" style={{ width: size, height: size * 0.73 }}>
+      <span className="bg-white" style={{ width: size * .27, height: size * .27 }} />
     </span>
   )
 }
@@ -26,12 +27,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       {/* десктоп: сайдбар */}
       <aside className="no-print sticky top-0 hidden h-dvh w-[216px] flex-none flex-col gap-1.5 border-r border-white/7 px-[18px] py-[26px] lg:flex">
-        <div className="serif px-2 pb-5 text-[26px]">Teremok</div>
+        <div className="tag mb-2 flex items-center gap-2 px-2"><span className="h-px w-[18px] bg-[var(--accent)]" />Ledger / 01</div>
+        <div className="display px-2 pb-5 text-[30px] font-bold">Tere<span className="text-[var(--accent)]">m</span>ok</div>
         {SIDE.map(t => (
           <Link key={t.label} href={t.href} className="flex min-h-[42px] items-center rounded-[11px] px-3 text-sm"
                 style={active(t.href) ? { background: 'rgba(255,255,255,.05)', color: 'var(--fg)' } : { color: 'var(--muted)' }}>{t.label}</Link>
         ))}
-        <Link href="/add" className="btn mt-3 flex items-center justify-center gap-2.5 text-[15px]"><CameraIcon size={20} /> Add from receipt</Link>
+        <Link href="/add" className="btn mono mt-3 flex items-center justify-center gap-2.5 text-[11px] uppercase tracking-[.14em]"><CameraIcon size={20} /> Add from receipt</Link>
         <div className="mono label-xs mt-auto px-3 text-[var(--faint)]">{new Date().toLocaleString('en-US', { month: 'short', year: 'numeric' }).toUpperCase()}</div>
       </aside>
 
@@ -46,13 +48,20 @@ export function Shell({ children }: { children: React.ReactNode }) {
             {TABS.slice(2).map(t => <Tab key={t.href} {...t} on={active(t.href)} />)}
           </div>
           <Link href="/add" aria-label="Add from receipt"
-                className="absolute bottom-[46px] left-1/2 z-40 flex h-[70px] w-[70px] -translate-x-1/2 items-center justify-center rounded-full border border-white/18 bg-[var(--accent)]"
-                style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,.35)' }}><CameraIcon /></Link>
+                className="absolute bottom-[44px] left-1/2 z-40 flex h-[74px] w-[74px] -translate-x-1/2 flex-col items-center justify-center gap-1.5 border border-white/28 bg-[var(--accent)]">
+            <CameraIcon />
+            <span className="mono text-[9px] tracking-[.14em] text-white">SHOOT</span>
+          </Link>
         </div>
       )}
     </div>
   )
 }
-function Tab({ href, label, on }: { href: string; label: string; on: boolean }) {
-  return <Link href={href} className="label flex min-h-[52px] flex-1 items-center justify-center text-[11px]" style={{ color: on ? 'var(--fg)' : 'var(--dim)' }}>{label}</Link>
+function Tab({ href, label, n, on }: { href: string; label: string; n: string; on: boolean }) {
+  return (
+    <Link href={href} className="mono flex min-h-[52px] flex-1 items-center justify-center gap-1 text-[10px] uppercase tracking-[.14em]"
+          style={{ color: on ? 'var(--fg)' : 'var(--dim)' }}>
+      <span className="opacity-50">{n}</span>{label}
+    </Link>
+  )
 }

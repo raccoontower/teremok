@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { splitData } from '@/lib/queries'
-import { money, neg, monthName, ym } from '@/lib/money'
+import { money, neg, monthName, ym, shortDate } from '@/lib/money'
 import { MonthNav } from '@/components/ui'
 import { Payout } from './payout'
 import { SplitExport } from './export'
@@ -16,7 +16,7 @@ export default async function Split({ searchParams }: { searchParams: Promise<{ 
       <Link href="/" className="flex min-h-11 items-center text-sm text-[var(--muted)] lg:hidden">‹ Home</Link>
       <div className="flex items-end justify-between">
         <div>
-          <div className="serif mt-1.5 text-[30px]">Partner split</div>
+          <div className="display mt-1.5 text-[30px]">Partner split</div>
           <div className="label mt-1">{monthName(month)} {month.slice(0, 4)} · all sites</div>
         </div>
         <MonthNav month={month} base="/split" />
@@ -27,18 +27,31 @@ export default async function Split({ searchParams }: { searchParams: Promise<{ 
           <div key={k as string} className="flex items-baseline justify-between py-[7px]"><div className="text-sm text-[var(--fg-2)]">{k}</div><div className="num text-lg" style={{ color: c as string }}>{v}</div></div>
         ))}
         <div className="my-3.5 h-px bg-white/9" />
-        <div className="flex items-baseline justify-between"><div className="label">Profit</div><div className="num text-[32px]" style={t.profit < 0 ? { color: 'var(--own)' } : undefined}>{money(t.profit)}</div></div>
+        <div className="flex items-baseline justify-between"><div className="label">Profit this month</div><div className="num text-[32px]" style={t.profit < 0 ? { color: 'var(--own)' } : undefined}>{money(t.profit)}</div></div>
+        <div className="mt-4 grid grid-cols-2 gap-2.5 border-t border-white/7 pt-4">
+          {d.partners.map(p => (
+            <div key={p.id}>
+              <div className="label-xs">{p.name} · {Math.round(p.share * 100)}%</div>
+              <div className="num mt-1.5 text-xl">{money(p.cut)}</div>
+              {p.takenMonth > 0 && <div className="mt-0.5 text-xs text-[var(--muted)]">paid out this month {money(p.takenMonth)}</div>}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-3 flex gap-2.5">
+      {/* Расчёт накопительный: перевод в октябре закрывает сентябрьскую долю,
+          поэтому «должен / взял лишнего» считается за всё время. */}
+      <div className="label mx-0.5 mb-2.5 mt-[26px]">Settlement · all time</div>
+      <div className="flex gap-2.5">
         {d.partners.map(p => (
           <div key={p.id} className="glass flex-1 rounded-[20px] p-[18px]">
-            <div className="label">{p.name} · {Math.round(p.share * 100)}%</div>
-            <div className="num mt-2 text-2xl">{money(p.cut)}</div>
-            <div className="my-3.5 h-px bg-white/7" />
-            <div className="flex justify-between py-[3px] text-xs text-[var(--muted)]"><span>Taken</span><span className="mono">{money(p.taken)}</span></div>
-            <div className="flex justify-between py-[3px] text-xs" style={{ color: p.owed < 0 ? 'var(--reimb)' : 'var(--own)' }}><span>{p.owed < 0 ? 'Over' : 'Owed'}</span><span className="mono">{money(Math.abs(p.owed))}</span></div>
-            <Payout partner={p} sites={d.sites} />
+            <div className="label">{p.name}</div>
+            <div className="mt-2 flex items-baseline justify-between text-xs text-[var(--muted)]"><span>Earned</span><span className="mono text-[var(--fg)]">{money(p.cutAll)}</span></div>
+            <div className="mt-1 flex items-baseline justify-between text-xs text-[var(--muted)]"><span>Paid out</span><span className="mono">{money(p.takenAll)}</span></div>
+            <div className="my-3 h-px bg-white/7" />
+            <div className="label-xs" style={{ color: p.balance < 0 ? 'var(--reimb)' : 'var(--own)' }}>{p.balance < 0 ? 'Took extra' : 'Still owed'}</div>
+            <div className="num mt-1 text-2xl" style={{ color: p.balance < 0 ? 'var(--reimb)' : 'var(--own)' }}>{money(Math.abs(p.balance))}</div>
+            <Payout partner={{ id: p.id, name: p.name, owed: p.balance }} sites={d.sites} />
           </div>
         ))}
       </div>
@@ -50,14 +63,18 @@ export default async function Split({ searchParams }: { searchParams: Promise<{ 
 
       <SplitExport month={month} />
 
-      <div className="label mx-0.5 mb-2.5 mt-[26px]">All time</div>
-      <div className="row px-4 py-3.5">
-        {d.partners.map(p => (
-          <div key={p.id} className="flex items-baseline justify-between py-1 text-sm">
-            <span className="text-[var(--fg-2)]">{p.name}</span>
-            <span className="text-xs text-[var(--muted)]">cut <span className="mono text-[var(--fg)]">{money(p.cutAll)}</span> · taken <span className="mono">{money(p.takenAll)}</span> · <span className="mono" style={{ color: p.owedAll < 0 ? 'var(--reimb)' : 'var(--own)' }}>{p.owedAll < 0 ? 'over' : 'owed'} {money(Math.abs(p.owedAll))}</span></span>
+      <div className="label mx-0.5 mb-2.5 mt-[26px]">Transfers</div>
+      <div className="flex flex-col gap-2">
+        {d.payouts.slice(0, 20).map(x => (
+          <div key={x.id} className="row flex items-center gap-3 px-3.5 py-3">
+            <div className="min-w-0 flex-1">
+              <div className="text-[15px] font-medium">{x.partner}</div>
+              <div className="mt-0.5 text-xs text-[var(--muted)]">{[shortDate(x.paid_on), x.site, x.note].filter(Boolean).join(' · ')}</div>
+            </div>
+            <div className="num text-base">{money(x.amount, true)}</div>
           </div>
         ))}
+        {!d.payouts.length && <div className="row px-4 py-5 text-center text-sm text-[var(--muted)]">No transfers yet. Record one when you move money.</div>}
       </div>
     </div>
   )
