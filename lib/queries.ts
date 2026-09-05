@@ -198,6 +198,12 @@ export async function gcData(siteId: string, from?: string, to?: string) {
 
 /** Объект по умолчанию для нового расхода: где сегодня больше всего людей,
  *  иначе — последний активный. Именно это «угадывание» экономит тап. */
+export type ReportExport = { id: string; kind: string; format: string | null; period_from: string | null; period_to: string | null; total: number | null; item_count: number | null; created_at: string }
+export async function exportsFor(siteId: string) {
+  const { data } = await db().from('report_exports').select('*').eq('site_id', siteId).order('created_at', { ascending: false }).limit(20)
+  return (data || []).map(r => ({ ...r, total: r.total == null ? null : Number(r.total) })) as ReportExport[]
+}
+
 export async function partnersList() {
   const { data } = await db().from('partners').select('id,name,is_owner').order('is_owner', { ascending: false })
   return (data || []) as { id: string; name: string; is_owner: boolean }[]

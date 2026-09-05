@@ -1,4 +1,5 @@
 import { gcData, splitData } from '@/lib/queries'
+import { db } from '@/lib/db'
 import { money, monthName, shortDate } from '@/lib/money'
 
 /**
@@ -26,11 +27,13 @@ export async function GET(req: Request) {
   const origin = u.origin
 
   let body: string, name: string
+  let log: Record<string, unknown> = { kind: type === 'partner' ? 'partner' : 'gc', format }
   if (type === 'partner') {
     const m = u.searchParams.get('m') || new Date().toISOString().slice(0, 7)
     const d = await splitData(m)
     const t = d.totals
     name = `partner-split-${m}`
+    log = { ...log, period_from: `${m}-01`, period_to: null, total: t.profit, item_count: d.partners.length }
     if (format === 'csv') {
       body = csv([
         ['Partner split', `${monthName(m)} ${m.slice(0, 4)}`],
@@ -82,7 +85,9 @@ export async function GET(req: Request) {
     const to = u.searchParams.get('to') || undefined
     const d = await gcData(site, from, to)
     if (!d) return new Response('site not found', { status: 404 })
-    name = `reimbursable-${d.site.name.replace(/[^\w-]+/g, '-')}`
+    const span = from || to ? `-${from || 'start'}_${to || 'now'}` : ''
+    name = `reimbursable-${d.site.name.replace(/[^\w-]+/g, '-')}${span}`
+    log = { ...log, site_id: site, period_from: from || d.items.at(-1)?.spent_on || null, period_to: to || d.items[0]?.spent_on || null, total: d.total, item_count: d.items.length }
     const rows = d.items.map(e => ({
       date: e.spent_on,
       vendor: e.vendor || e.category,
@@ -93,7 +98,8 @@ export async function GET(req: Request) {
     }))
     if (format === 'csv') {
       body = csv([
-        ['Reimbursable purchases', d.site.name, d.site.address || '', d.site.gc_company || ''],
+        ['Reimbursable purchases', d.site.name, d.site.address || '', d.site.gc_company || '',
+         from || to ? `${from || 'start'} – ${to || 'today'}` : 'all time'],
         [],
         ['Date', 'Vendor', 'What was bought', 'Amount', 'Receipt', 'Paid back'],
         ...rows.map(r => [r.date, r.vendor, r.note, r.amount.toFixed(2), r.receipt, r.paid]),
@@ -102,9 +108,12 @@ export async function GET(req: Request) {
         ['Outstanding', '', '', d.outstanding.toFixed(2)],
       ])
     } else {
+      const period = from || to
+        ? `${from ? shortDate(from) : 'start'} – ${to ? shortDate(to) : 'today'}`
+        : (d.items.length ? `${shortDate(d.items.at(-1)!.spent_on)} – ${shortDate(d.items[0].spent_on)}` : 'no purchases')
       body = [
         `REIMBURSABLE PURCHASES — ${d.site.name}`,
-        [d.site.address, d.site.gc_company].filter(Boolean).join(' · '),
+        [d.site.address, d.site.gc_company, period].filter(Boolean).join(' · '),
         ''.padEnd(60, '-'),
         ...rows.map(r =>
           `${pad(shortDate(r.date), 10)}${pad(r.vendor, 26)}${money(r.amount, true).padStart(12)}` +
@@ -118,6 +127,11 @@ export async function GET(req: Request) {
       ].join('\n')
     }
   }
+
+  // след выгрузки: при следующей отправке видно, за что уже отчитались
+  try {
+    await db().from('report_exports').insert(log)
+  } catch { /* отчёт важнее журнала: молча продолжаем */ }
 
   return new Response(body, {
     headers: {
