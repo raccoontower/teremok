@@ -25,13 +25,19 @@ export default async function Crew() {
                 <div className="text-base font-medium">{w.name}</div>
                 <div className="mt-0.5 text-xs text-[var(--muted)]">{PAY_LABEL[w.default_pay](w.default_rate || 0)} · {w.default_pay === 'day_rate' ? `${w.days} ${w.days === 1 ? 'day' : 'days'}` : `${w.sites} ${w.sites === 1 ? 'site' : 'sites'}`}</div>
               </div>
-              <PayButton worker={{ id: w.id, name: w.name, owed: w.owed, default_pay: w.default_pay, default_rate: w.default_rate, active: w.active }} sites={d.sites} />
+              <PayButton worker={{ id: w.id, name: w.name, owed: w.owed, default_pay: w.default_pay, default_rate: w.default_rate, active: w.active, payments: w.payments }} sites={d.sites} />
             </div>
             <div className="mt-4 grid grid-cols-3 gap-2 border-t border-white/7 pt-3.5">
               <div><div className="label-xs">Earned</div><div className="num mt-1 text-base">{money(w.earned)}</div></div>
               <div><div className="label-xs">Paid</div><div className="num mt-1 text-base text-[var(--muted)]">{money(w.paid)}</div></div>
               <div><div className="label-xs text-[var(--own)]">Owed</div><div className="num mt-1 text-base text-[var(--own)]">{money(w.owed)}</div></div>
             </div>
+            {w.payments[0]?.note && (
+              <div className="mt-3 border-l-2 border-[var(--line)] pl-3 text-[13px] leading-snug text-[var(--muted)]">
+                <span className="mono text-[10px] tracking-[.14em]">LAST · {w.payments[0].paid_on}</span>
+                <div className="mt-0.5 text-[var(--fg-2)]">{w.payments[0].note}</div>
+              </div>
+            )}
           </div>
         ))}
         {!d.workers.length && <div className="row px-4 py-6 text-center text-sm text-[var(--muted)]">No crew yet. Add up to four people.</div>}
