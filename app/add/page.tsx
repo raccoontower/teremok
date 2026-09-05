@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type Guess = {
   vendor: string | null; total: number | null; spent_on: string | null
@@ -13,9 +13,29 @@ export default function AddExpense() {
   const [busy, setBusy] = useState(false)
   const [g, setG] = useState<Guess | null>(null)
   const [err, setErr] = useState<string | null>(null)
+  const [file, setFile] = useState<File | null>(null)
+  const [sites, setSites] = useState<{ id: string; name: string }[]>([])
+  const [siteId, setSiteId] = useState('')
+  const [saved, setSaved] = useState<string | null>(null)
+  useEffect(() => { fetch('/api/sites').then(r => r.json()).then(d => Array.isArray(d) && setSites(d)) }, [])
+
+  async function save() {
+    if (!g) return
+    setBusy(true); setErr(null)
+    const fd = new FormData()
+    fd.append('amount', String(g.total ?? 0)); fd.append('kind', g.kind); fd.append('category', g.category)
+    if (g.vendor) fd.append('vendor', g.vendor); if (g.spent_on) fd.append('spent_on', g.spent_on)
+    if (siteId) fd.append('site_id', siteId); if (file) fd.append('file', file)
+    fd.append('ocr', JSON.stringify(g))
+    const r = await fetch('/api/expenses', { method: 'POST', body: fd }); const j = await r.json()
+    setBusy(false)
+    if (j.error) { setErr(j.error); return }
+    setSaved(`Сохранено: $${Number(j.amount).toFixed(2)} · ${j.kind === 'reimbursable' ? 'возмещаемое' : 'своё'}`)
+    setG(null); setFile(null)
+  }
 
   async function onFile(f: File) {
-    setBusy(true); setErr(null)
+    setFile(f); setSaved(null); setBusy(true); setErr(null)
     const fd = new FormData(); fd.append('file', f)
     const r = await fetch('/api/receipt', { method: 'POST', body: fd })
     const j = await r.json()
@@ -38,6 +58,7 @@ export default function AddExpense() {
       </label>
 
       {err && <p className="text-sm text-red-400">{err}</p>}
+      {saved && <p className="rounded-xl border border-[var(--reimb)]/40 bg-[var(--panel)] px-4 py-3 text-sm">{saved}</p>}
 
       {g && (
         <form className="space-y-4 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
@@ -62,16 +83,16 @@ export default function AddExpense() {
               ))}
             </ul>
           )}
-          <select className="w-full rounded-xl border border-[var(--line)] bg-transparent px-3 py-2">
-            <option>Объект — подставится из расписания</option>
+          <select value={siteId} onChange={e => setSiteId(e.target.value)}
+                  className="w-full rounded-xl border border-[var(--line)] bg-[var(--panel)] px-3 py-2">
+            <option value="">Объект — не указан</option>
+            {sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
-          <button type="button" className="w-full rounded-xl bg-white py-3 font-medium text-black">
-            Сохранить
+          <button type="button" onClick={save} disabled={busy}
+                  className="w-full rounded-xl bg-white py-3 font-medium text-black disabled:opacity-50">
+            {busy ? 'Сохраняю…' : 'Сохранить'}
           </button>
-          <p className="text-center text-xs text-[var(--muted)]">
-            {g.confidence !== 'high' && 'Проверь сумму: модель не уверена. '}
-            Сохранение включится, когда подключим базу.
-          </p>
+          {g.confidence !== 'high' && <p className="text-center text-xs text-[var(--own)]">Проверь сумму: модель не уверена.</p>}
         </form>
       )}
     </div>
