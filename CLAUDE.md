@@ -1,49 +1,11 @@
-# teremok
+@AGENTS.md
 
-CRM телеком-стройки: расходы по фото чека, возмещаемые vs свои, делёж с партнёром, зарплаты бригады, расписание по вышкам, отчёт управляющей компании
+<!-- BEGIN:nextjs-agent-rules -->
 
-> Портфельные правила — `~/projects/OPERATOR.md`. Здесь только специфика проекта.
+# This is NOT the Next.js you know
 
-## Что это
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
-<!-- Зачем проект существует, кто пользователь, что считается успехом. -->
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
-## Стек и инфраструктура
-
-- Язык/фреймворк:
-- База / хранилище:
-- Хостинг / деплой:
-- Внешние сервисы:
-
-## Запуск
-
-```bash
-pj teremok          # cd + окружение + текущий статус
-# установка:
-# dev:
-# тесты:
-# сборка:
-```
-
-## Переменные окружения
-
-Значения — в `~/projects/env/teremok.env` (подцеплены симлинком `.env`).
-Имена — в `.env.example`.
-
-| Переменная | Зачем |
-|---|---|
-|  |  |
-
-## Структура
-
-<!-- Где что лежит: точки входа, ключевые модули. -->
-
-## Правила проекта
-
-<!-- Только то, что специфично именно здесь: инварианты домена, чего нельзя
-     трогать, требования регуляторов, особенности прод-окружения.
-     Общие правила подтверждений не дублировать — они в OPERATOR.md §8. -->
-
-## Контекст перед работой
-
-`STATUS.md` → хвост `JOURNAL.md` → `spec/` → `git log --oneline -20`
+<!-- END:nextjs-agent-rules -->
