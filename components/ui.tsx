@@ -5,11 +5,24 @@ import { useRouter } from 'next/navigation'
 /** Нижний лист с выбором. Полностью закрывает экран затемнением; закрыть —
  *  тап по фону. Один компонент для всех выборов: объект, работник, статус. */
 export function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  // Экранная клавиатура на iOS не двигает fixed-элементы: лист остаётся под
+  // ней, и ни поля, ни кнопки не видно. Поднимаем его на высоту клавиатуры,
+  // которую отдаёт visualViewport.
+  const [kb, setKb] = useState(0)
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const sync = () => setKb(Math.max(0, window.innerHeight - vv.height - vv.offsetTop))
+    sync()
+    vv.addEventListener('resize', sync); vv.addEventListener('scroll', sync)
+    return () => { vv.removeEventListener('resize', sync); vv.removeEventListener('scroll', sync) }
+  }, [])
   return (
     <div className="fixed inset-0 z-40 flex flex-col justify-end lg:items-center lg:justify-center">
       <button onClick={onClose} aria-label="close" className="absolute inset-0 border-0 bg-[rgba(4,6,9,.72)]" />
-      <div className="rise relative max-h-[86dvh] overflow-y-auto rounded-none border-t border-white/12 bg-[var(--panel)] px-[18px] pb-8 pt-3 lg:w-[440px] lg:rounded-[26px] lg:border">
-        <div className="mx-auto mb-4 h-1 w-11 rounded-none bg-white/16 lg:hidden" />
+      <div className="rise relative overflow-y-auto border-t border-white/12 bg-[var(--panel)] px-[18px] pb-8 pt-3 lg:w-[440px] lg:border"
+           style={{ marginBottom: kb, maxHeight: `calc(86dvh - ${kb}px)` }}>
+        <div className="mx-auto mb-4 h-1 w-11 bg-white/16 lg:hidden" />
         <div className="label mb-3">{title}</div>
         <div className="flex flex-col gap-2">{children}</div>
       </div>
@@ -19,7 +32,7 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
 
 export function SheetRow({ label, sub, dot, active, onClick }: { label: string; sub?: string; dot?: string; active?: boolean; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="flex min-h-14 w-full items-center gap-3 rounded-[14px] border px-4 text-left text-[15px]"
+    <button onClick={onClick} className="flex min-h-14 w-full items-center gap-3 border px-4 text-left text-[15px]"
             style={{ borderColor: active ? 'rgba(42,115,232,.5)' : 'rgba(255,255,255,.08)', background: active ? 'rgba(42,115,232,.12)' : 'rgba(255,255,255,.03)' }}>
       {dot && <span className="h-2 w-2 flex-none rounded-none" style={{ background: dot }} />}
       <span className="min-w-0 flex-1">{label}{sub && <span className="mt-0.5 block text-xs text-[var(--muted)]">{sub}</span>}</span>
