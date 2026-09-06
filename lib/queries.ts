@@ -110,7 +110,7 @@ export async function homeData(month: string) {
   return { totals: t, reimbOut: out.reimbOut, receipts: out.receipts, outSites, active, workOwed, contracted, entries: entriesOf(a, a.expenses.slice(0, 40)), count: a.expenses.length, sites: cards }
 }
 
-export type SiteCard = Site & SiteTotals & { gc: GcBalance }
+export type SiteCard = Site & SiteTotals & { gc: GcBalance; lastNote: { body: string; created_at: string } | null }
 function gcBalance(site: Site, t: SiteTotals): GcBalance {
   const contract = site.contract_amount
   const workOwed = contract == null ? 0 : Math.max(0, contract - t.income)
@@ -118,9 +118,12 @@ function gcBalance(site: Site, t: SiteTotals): GcBalance {
 }
 
 async function sitesList(a: All, lines: WageLine[]): Promise<SiteCard[]> {
+  const { data: lastNotes } = await db().from('site_notes').select('site_id,body,created_at').order('created_at', { ascending: false }).limit(200)
+  const note = new Map<string, { body: string; created_at: string }>()
+  for (const n of (lastNotes || []) as { site_id: string; body: string; created_at: string }[]) if (!note.has(n.site_id)) note.set(n.site_id, n)
   return a.sites.map(s => {
     const t = totalsFor(a, lines, id => id === s.id, l => l.site_id === s.id)
-    return { ...s, ...t, gc: gcBalance(s, t) }
+    return { ...s, ...t, gc: gcBalance(s, t), lastNote: note.get(s.id) || null }
   })
 }
 /** Все транзакции месяца с итогами — экран истории. */
@@ -144,6 +147,8 @@ export async function txData(month: string, filter?: 'own' | 'reimbursable' | 'n
 
 export async function sitesData() { const a = await loadAll(); return sitesList(a, wageLines(a)) }
 
+export type SiteNote = { id: string; body: string; photo_path: string | null; created_at: string }
+
 export async function siteData(id: string) {
   const a = await loadAll(); const lines = wageLines(a)
   const site = a.sites.find(s => s.id === id); if (!site) return null
@@ -154,7 +159,9 @@ export async function siteData(id: string) {
     return { id: w.id, name: w.name, days: mine.reduce((s, l) => s + l.days, 0), earned: mine.reduce((s, l) => s + l.amount, 0) }
   }).filter(c => c.days > 0)
   const income = a.income.filter(i => i.site_id === id).sort((x, y) => y.received_on.localeCompare(x.received_on))
-  return { site, totals, gc, crew, entries: entriesOf(a, a.expenses.filter(e => e.site_id === id)), income }
+  const { data: notesData } = await db().from('site_notes').select('id,body,photo_path,created_at').eq('site_id', id).order('created_at', { ascending: false })
+  const notes = (notesData || []) as SiteNote[]
+  return { site, totals, gc, notes, crew, entries: entriesOf(a, a.expenses.filter(e => e.site_id === id)), income }
 }
 
 export async function crewData() {

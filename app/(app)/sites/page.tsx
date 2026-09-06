@@ -19,6 +19,14 @@ export default async function Sites() {
           <Link key={s.id} href={`/sites/${s.id}`} className="panel block p-[18px]">
             <div className="flex items-center justify-between gap-2.5"><div className="text-base font-medium">{s.name}</div><StatusPill status={s.status} /></div>
             <div className="mt-0.5 text-[13px] text-[var(--muted)]">{s.address || s.gc_company || '—'}</div>
+            {s.lastNote && (
+              <div className="mt-3 border-l-2 border-[var(--line)] pl-3">
+                <div className="mono text-[10px] uppercase tracking-[.14em] text-[var(--muted)]">
+                  Log · {new Date(s.lastNote.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric' })}
+                </div>
+                <div className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-[var(--fg-2)]">{s.lastNote.body}</div>
+              </div>
+            )}
             <div className="mt-4 flex gap-6">
               <div><div className="label-xs">Profit</div><div className="num mt-1 text-lg" style={s.profit < 0 ? { color: 'var(--own)' } : undefined}>{money(s.profit)}</div></div>
               <div><div className="label-xs text-[var(--reimb)]">Reimb. out</div><div className="num mt-1 text-lg text-[var(--reimb)]">{money(s.reimbOut)}</div></div>
