@@ -1,0 +1,9 @@
+[Unit]
+Description=Раз в три дня — пинг Teremok, порог паузы у Supabase Free 7 дней
+
+[Timer]
+OnCalendar=*-*-1/3 09:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

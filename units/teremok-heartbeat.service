@@ -1,0 +1,10 @@
+[Unit]
+Description=Пинг Supabase Teremok — не дать Free-тарифу поставить проект на паузу
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/komodikus/projects/teremok
+Environment=PATH=/home/komodikus/.nvm/versions/node/v24.19.0/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/komodikus/.nvm/versions/node/v24.19.0/bin/node scripts/heartbeat.mjs
+StandardOutput=append:/home/komodikus/projects/teremok/logs/heartbeat.log
+StandardError=append:/home/komodikus/projects/teremok/logs/heartbeat.log
