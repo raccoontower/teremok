@@ -1,10 +1,11 @@
-import { gcData, splitData } from '@/lib/queries'
+import { gcData, splitData, materialsData } from '@/lib/queries'
 import { db } from '@/lib/db'
 import { money, monthName, shortDate } from '@/lib/money'
 
 /**
  * Выгрузка отчёта. Два вида и два формата:
  *   ?type=gc&site=<id>[&from&to]   — возмещаемые покупки для управляющей компании
+ *   ?type=materials[&from&to]      — материалы за период по всем объектам сразу
  *   ?type=partner&m=YYYY-MM        — делёж с партнёром за месяц
  *   &format=csv | txt
  *
@@ -28,7 +29,54 @@ export async function GET(req: Request) {
 
   let body: string, name: string
   let log: Record<string, unknown> = { kind: type === 'partner' ? 'partner' : 'gc', format }
-  if (type === 'partner') {
+  if (type === 'materials') {
+    const from = u.searchParams.get('from') || undefined
+    const to = u.searchParams.get('to') || undefined
+    const d = await materialsData(from, to)
+    const span = from || to ? `-${from || 'start'}_${to || 'now'}` : ''
+    name = `materials${span}`
+    const period = from || to
+      ? `${from ? shortDate(from) : 'start'} – ${to ? shortDate(to) : 'today'}`
+      : (d.items.length ? `${shortDate(d.items.at(-1)!.spent_on)} – ${shortDate(d.items[0].spent_on)}` : 'no purchases')
+    log = { ...log, kind: 'materials', period_from: from || d.items.at(-1)?.spent_on || null, period_to: to || d.items[0]?.spent_on || null, total: d.total, item_count: d.items.length }
+    const siteOf = new Map(d.groups.flatMap(g => g.items.map(e => [e.id, g.name] as const)))
+    if (format === 'csv') {
+      body = csv([
+        ['Materials', period],
+        [],
+        ['Date', 'Site', 'Vendor', 'What was bought', 'Amount', 'Receipt', 'Paid back'],
+        ...d.items.map(e => [e.spent_on, siteOf.get(e.id) || '', e.vendor || e.category, e.note || '',
+          e.amount.toFixed(2),
+          e.receipt_path ? `${origin}/api/file?path=${encodeURIComponent(e.receipt_path)}` : '',
+          e.reimbursed_on || '']),
+        [],
+        ['By site', '', '', '', 'Amount'],
+        ...d.groups.map(g => [g.name, '', '', '', g.total.toFixed(2)]),
+        [],
+        ['TOTAL', '', '', '', d.total.toFixed(2)],
+        ['Outstanding', '', '', '', d.outstanding.toFixed(2)],
+      ])
+    } else {
+      body = [
+        `MATERIALS — ${period}`,
+        ''.padEnd(60, '-'),
+        ...d.groups.map(g => [
+          g.name.toUpperCase() + (g.gc ? ` · ${g.gc}` : ''),
+          ...g.items.map(e =>
+            `${pad(shortDate(e.spent_on), 10)}${pad(e.vendor || e.category, 26)}${money(e.amount, true).padStart(12)}` +
+            (e.note ? `\n${''.padEnd(10)}${e.note}` : '') +
+            (e.reimbursed_on ? `\n${''.padEnd(10)}paid back ${shortDate(e.reimbursed_on)}` : '')),
+          `${pad('  subtotal', 36)}${money(g.total, true).padStart(12)}`,
+          '',
+        ].join('\n')),
+        ''.padEnd(60, '-'),
+        `${pad('TOTAL', 36)}${money(d.total, true).padStart(12)}`,
+        `${pad('OUTSTANDING', 36)}${money(d.outstanding, true).padStart(12)}`,
+        '',
+        `${d.items.filter(e => e.receipt_path).length} of ${d.items.length} purchases have a receipt attached.`,
+      ].join('\n')
+    }
+  } else if (type === 'partner') {
     const m = u.searchParams.get('m') || new Date().toISOString().slice(0, 7)
     const d = await splitData(m)
     const t = d.totals

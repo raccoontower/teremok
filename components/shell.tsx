@@ -8,7 +8,7 @@ const TABS = [
   { href: '/', label: 'Home', n: '01' }, { href: '/tx', label: 'Money', n: '02' },
   { href: '/sites', label: 'Sites', n: '03' }, { href: '/crew', label: 'Crew', n: '04' },
 ]
-const SIDE = [{ href: '/', label: 'Home' }, { href: '/tx', label: 'Transactions' }, { href: '/sites', label: 'Sites' }, { href: '/crew', label: 'Crew & wages' }, { href: '/week', label: 'Schedule' }, { href: '/split', label: 'Partner split' }]
+const SIDE = [{ href: '/', label: 'Home' }, { href: '/tx', label: 'Transactions' }, { href: '/sites', label: 'Sites' }, { href: '/materials', label: 'Materials' }, { href: '/crew', label: 'Crew & wages' }, { href: '/week', label: 'Schedule' }, { href: '/split', label: 'Partner split' }]
 
 /** Плюс из отрезков — в макете нет круглых форм и иконочных шрифтов. */
 function PlusIcon({ size = 24 }: { size?: number }) {

@@ -246,6 +246,39 @@ export async function gcData(siteId: string, from?: string, to?: string) {
   return { site, items, total: items.reduce((s, e) => s + e.amount, 0), outstanding: items.filter(e => !e.reimbursed_on).reduce((s, e) => s + e.amount, 0) }
 }
 
+/**
+ * Материалы за период по всем объектам сразу.
+ *
+ * Отчёт по объекту уже есть, но отчитываются не всегда по объекту: закупка
+ * идёт под несколько площадок одного подрядчика, и вопрос звучит «сколько мы
+ * потратили на материал с первого по восьмое». Раньше это приходилось
+ * складывать из нескольких отчётов руками.
+ *
+ * Возмещаемое и есть материал: все 18 возмещаемых покупок в базе — категория
+ * materials, иначе покупку просто не за что предъявлять. Поэтому фильтр
+ * по виду, а не по категории — он не рассыплется, если завтра появится
+ * возмещаемая аренда.
+ */
+export async function materialsData(from?: string, to?: string) {
+  const a = await loadAll()
+  const items = a.expenses.filter(e =>
+    e.kind === 'reimbursable' && (!from || e.spent_on >= from) && (!to || e.spent_on <= to))
+  const byId = new Map(a.sites.map(s => [s.id, s]))
+  const groups = [...items.reduce((m, e) => {
+    const k = e.site_id || ''
+    const g = m.get(k) || { siteId: e.site_id, name: byId.get(e.site_id || '')?.name || 'No site', gc: byId.get(e.site_id || '')?.gc_company || null, items: [] as Expense[] }
+    g.items.push(e); m.set(k, g); return m
+  }, new Map<string, { siteId: string | null; name: string; gc: string | null; items: Expense[] }>()).values()]
+    .map(g => ({ ...g, total: g.items.reduce((s, e) => s + e.amount, 0), open: g.items.filter(e => !e.reimbursed_on).reduce((s, e) => s + e.amount, 0) }))
+    .sort((x, y) => y.total - x.total)
+  return {
+    items, groups,
+    total: items.reduce((s, e) => s + e.amount, 0),
+    outstanding: items.filter(e => !e.reimbursed_on).reduce((s, e) => s + e.amount, 0),
+    openIds: items.filter(e => !e.reimbursed_on).map(e => e.id),
+  }
+}
+
 /** Объект по умолчанию для нового расхода: где сегодня больше всего людей,
  *  иначе — последний активный. Именно это «угадывание» экономит тап. */
 export type ReportExport = { id: string; kind: string; format: string | null; period_from: string | null; period_to: string | null; total: number | null; item_count: number | null; created_at: string }
