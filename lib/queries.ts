@@ -24,7 +24,7 @@ async function loadAll() {
     c.from('sites').select('*').order('created_at', { ascending: false }),
     c.from('workers').select('*').order('name'),
     c.from('expenses').select('id,site_id,spent_on,amount,kind,category,vendor,receipt_path,reimbursed_on,note,paid_by').order('spent_on', { ascending: false }).order('created_at', { ascending: false }),
-    c.from('income').select('id,site_id,received_on,amount,note'),
+    c.from('income').select('id,site_id,received_on,amount,note,source'),
     c.from('schedule').select('worker_id,site_id,work_day'),
     c.from('payroll').select('id,site_id,worker_id,amount,paid_on,note,paid_by'),
     c.from('partner_payouts').select('id,partner_id,site_id,paid_on,amount,note'),
@@ -35,7 +35,7 @@ async function loadAll() {
     sites: ((sites.data || []) as Site[]).map(s => ({ ...s, contract_amount: s.contract_amount == null ? null : n(s.contract_amount) })),
     workers: ((workers.data || []) as Worker[]).map(w => ({ ...w, default_rate: w.default_rate == null ? null : n(w.default_rate) })),
     expenses: ((expenses.data || []) as Expense[]).map(e => ({ ...e, amount: n(e.amount) })),
-    income: (income.data || []).map(i => ({ ...i, amount: n(i.amount) })) as { id: string; site_id: string; received_on: string; amount: number; note: string | null }[],
+    income: (income.data || []).map(i => ({ ...i, amount: n(i.amount) })) as { id: string; site_id: string | null; received_on: string; amount: number; note: string | null; source: string | null }[],
     sched: (sched.data || []) as Sched[],
     payroll: (payroll.data || []).map(p => ({ ...p, amount: n(p.amount) })) as { id: string; site_id: string | null; worker_id: string; amount: number; paid_on: string | null; note: string | null; paid_by: string | null }[],
     payouts: (payouts.data || []).map(p => ({ ...p, amount: n(p.amount) })) as { id: string; partner_id: string; site_id: string | null; paid_on: string; amount: number; note: string | null }[],
@@ -49,7 +49,8 @@ type All = Awaited<ReturnType<typeof loadAll>>
  *  дня на объекте. Так фикс не размазывается и не считается дважды. */
 function wageLines(a: All): WageLine[] {
   const incomeBySite = new Map<string, number>()
-  for (const i of a.income) incomeBySite.set(i.site_id, (incomeBySite.get(i.site_id) || 0) + i.amount)
+  // доход без объекта в долю процентщика не идёт: это деньги не с этой стройки
+  for (const i of a.income) if (i.site_id) incomeBySite.set(i.site_id, (incomeBySite.get(i.site_id) || 0) + i.amount)
   const byWorker = new Map(a.workers.map(w => [w.id, w]))
   const groups = new Map<string, Sched[]>()
   for (const s of a.sched) { const k = s.worker_id + '|' + s.site_id; groups.set(k, [...(groups.get(k) || []), s]) }
@@ -107,7 +108,14 @@ export async function homeData(month: string) {
   const workOwed = cards.reduce((s, c) => s + c.gc.workOwed, 0)
   const contracted = cards.reduce((s, c) => s + (c.contract_amount || 0), 0)
   const active = a.sites.filter(s => s.status === 'active').length
-  return { totals: t, reimbOut: out.reimbOut, receipts: out.receipts, outSites, active, workOwed, contracted, entries: entriesOf(a, a.expenses.slice(0, 40)), count: a.expenses.length, sites: cards }
+  // Приход без объекта не виден ни на одной карточке стройки — он влияет на
+  // прибыль месяца и обязан быть показан отдельной строкой, иначе цифра
+  // меняется без объяснения.
+  const otherIncome = a.income
+    .filter(i => !i.site_id && i.received_on >= from && i.received_on < to)
+    .sort((x, y) => (x.received_on < y.received_on ? 1 : -1))
+    .map(i => ({ id: i.id, amount: i.amount, received_on: i.received_on, source: i.source, note: i.note }))
+  return { totals: t, reimbOut: out.reimbOut, receipts: out.receipts, outSites, active, workOwed, contracted, entries: entriesOf(a, a.expenses.slice(0, 40)), count: a.expenses.length, sites: cards, otherIncome }
 }
 
 export type SiteCard = Site & SiteTotals & { gc: GcBalance; lastNote: { body: string; created_at: string } | null }

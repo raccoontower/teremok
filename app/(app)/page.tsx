@@ -3,6 +3,7 @@ import { homeData } from '@/lib/queries'
 import { money, neg, monthName, ym } from '@/lib/money'
 import { Entries } from '@/components/entries'
 import { FlashToast, MonthNav, StatusPill } from '@/components/ui'
+import { OtherIncomeBlock } from './other-income'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,6 +61,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
       </div>
 
       <div>
+        <OtherIncomeBlock month={month} items={d.otherIncome} />
         <div className="mb-2.5 mt-[26px] flex items-baseline justify-between px-0.5 lg:mt-3.5">
           <div className="tag">Recent entries</div>
           <Link href={`/tx?m=${month}`} className="tag text-[var(--accent-2)]">All {d.count} →</Link>
