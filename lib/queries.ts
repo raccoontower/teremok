@@ -137,21 +137,43 @@ async function sitesList(a: All, lines: WageLine[]): Promise<SiteCard[]> {
   })
 }
 /** Все транзакции месяца с итогами — экран истории. */
-export async function txData(month: string, filter?: 'own' | 'reimbursable' | 'nosite') {
+/**
+ * Лента трат за месяц с двумя независимыми фильтрами: вид денег и объект.
+ *
+ * Итоги считаются дважды — по выбранному объекту и по всем сразу. Раньше
+ * сверху стояли три числа одного размера: «своё», «возмещаемое» и «без
+ * объекта». Первые два — разрез по виду денег, третье — по объектам, и сложить
+ * их нельзя, хотя вид подсказывает обратное. Теперь наверху всегда одна
+ * тройка, которая сходится: своё + возмещаемое = всего, — а когда выбран
+ * объект, рядом видно, какая это часть от общего.
+ */
+export async function txData(month: string, filter?: 'own' | 'reimbursable', siteId?: string) {
   const a = await loadAll(); const { from, to } = monthRange(month)
   const inMonth = a.expenses.filter(e => e.spent_on >= from && e.spent_on < to)
-  const list = filter === 'nosite' ? inMonth.filter(e => !e.site_id)
-    : filter ? inMonth.filter(e => e.kind === filter) : inMonth
-  // траты без объекта не попадают ни в один сайт и не видны в его прибыли —
-  // их надо показывать отдельно, иначе они тихо теряются
+  // 'none' — траты, не привязанные ни к одному объекту: в прибыль объекта они
+  // не попадают и теряются тише всего, поэтому у них свой пункт фильтра.
+  const bySite = siteId === 'none' ? inMonth.filter(e => !e.site_id)
+    : siteId ? inMonth.filter(e => e.site_id === siteId) : inMonth
+  const list = filter ? bySite.filter(e => e.kind === filter) : bySite
+  const sum = (rows: Expense[], kind?: 'own' | 'reimbursable') =>
+    rows.filter(e => !kind || e.kind === kind).reduce((s, e) => s + e.amount, 0)
   const orphans = inMonth.filter(e => !e.site_id)
   return {
     entries: entriesOf(a, list),
-    own: inMonth.filter(e => e.kind === 'own').reduce((s, e) => s + e.amount, 0),
-    reimb: inMonth.filter(e => e.kind === 'reimbursable').reduce((s, e) => s + e.amount, 0),
+    own: sum(bySite, 'own'),
+    reimb: sum(bySite, 'reimbursable'),
+    total: sum(bySite),
+    allOwn: sum(inMonth, 'own'),
+    allReimb: sum(inMonth, 'reimbursable'),
+    allTotal: sum(inMonth),
     orphanCount: orphans.length,
-    orphanTotal: orphans.reduce((s, e) => s + e.amount, 0),
-    sites: a.sites.map(s => ({ id: s.id, name: s.name })),
+    orphanTotal: sum(orphans),
+    // Только объекты, по которым в этом месяце что-то есть: список всех
+    // площадок за всю историю в фильтре бесполезен и не помещается.
+    sites: a.sites
+      .map(s => ({ id: s.id, name: s.name, total: sum(inMonth.filter(e => e.site_id === s.id)) }))
+      .filter(s => s.total > 0)
+      .sort((x, y) => y.total - x.total),
   }
 }
 
