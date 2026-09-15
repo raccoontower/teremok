@@ -11,6 +11,13 @@ export default async function Split({ searchParams }: { searchParams: Promise<{ 
   const { m } = await searchParams
   const month = /^\d{4}-\d{2}$/.test(m || '') ? m! : ym()
   const d = await splitData(month); const t = d.totals
+  // Ответ одной фразой, словами владельца. Карточки ниже отвечают на тот же
+  // вопрос, но с точки зрения каждого партнёра по отдельности, и чтобы понять
+  // «сколько я должен», их приходится читать вдвоём и вычитать в уме.
+  const me = d.partners.find(p => p.is_owner)
+  const other = d.partners.find(p => !p.is_owner)
+  const proj = d.projected
+  const projMe = proj?.find(p => p.id === me?.id)
   return (
     <div className="lg:max-w-[720px]">
       <Link href="/" className="flex min-h-11 items-center text-sm text-[var(--muted)] lg:hidden">‹ Home</Link>
@@ -40,6 +47,46 @@ export default async function Split({ searchParams }: { searchParams: Promise<{ 
           ))}
         </div>
       </div>
+
+      {/* Главный вопрос месяца одной строкой: кто кому и сколько. */}
+      {me && other && (
+        <div className="panel mt-3.5 px-[22px] py-5">
+          <div className="label">Bottom line</div>
+          {me.balance < 0 ? (
+            <>
+              <div className="mt-2 text-[15px] text-[var(--fg-2)]">You owe {other.name.split(' ')[0]}</div>
+              <div className="num mt-1 text-[32px] text-[var(--own)]">{money(Math.abs(me.balance))}</div>
+            </>
+          ) : me.balance > 0 ? (
+            <>
+              <div className="mt-2 text-[15px] text-[var(--fg-2)]">{other.name.split(' ')[0]} owes you</div>
+              <div className="num mt-1 text-[32px] text-[var(--reimb)]">{money(me.balance)}</div>
+            </>
+          ) : (
+            <div className="num mt-2 text-[26px]">Square</div>
+          )}
+          <div className="mt-2 text-[13px] leading-relaxed text-[var(--muted)]">
+            What the GC paid, minus wages, minus what the two of you spent, split in half —
+            then minus the {money(other.takenAll)} already transferred.
+          </div>
+
+          {/* Пока GC не заплатил, месяц в минусе и строка выше показывает
+              обратное тому, что владелец собирается делать в конце месяца. */}
+          {projMe && d.unpaidContract > 0 && (
+            <div className="mt-4 border-t border-white/8 pt-3.5">
+              <div className="text-[13px] leading-relaxed text-[var(--muted)]">
+                The GC still owes <span className="num text-[var(--fg-2)]">{money(d.unpaidContract)}</span> for
+                work under contract. Once that lands:
+              </div>
+              <div className="mt-2 text-[15px]">
+                {projMe.balance < 0
+                  ? <>you owe {other.name.split(' ')[0]} <span className="num text-[var(--own)]">{money(Math.abs(projMe.balance))}</span></>
+                  : <>{other.name.split(' ')[0]} owes you <span className="num text-[var(--reimb)]">{money(projMe.balance)}</span></>}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Расчёт накопительный: перевод в октябре закрывает сентябрьскую долю,
           поэтому «должен / взял лишнего» считается за всё время. */}

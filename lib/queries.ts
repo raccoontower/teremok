@@ -275,7 +275,35 @@ export async function splitData(month: string) {
   const payouts = a.payouts
     .map(x => ({ ...x, partner: a.partners.find(p => p.id === x.partner_id)?.name || '—', site: x.site_id ? siteName.get(x.site_id) || '' : '' }))
     .sort((x, y) => y.paid_on.localeCompare(x.paid_on))
-  return { totals: t, allTime, partners, payouts, sites: a.sites.map(s => ({ id: s.id, name: s.name })) }
+
+  /* Чем расчёт станет, когда управляющая компания расплатится за работу.
+   *
+   * Сегодняшняя цифра честная, но она отвечает на вопрос «кто кому должен
+   * прямо сейчас», а владелец переводит партнёру в конце месяца и думает
+   * наперёд: «GC заплатит за объект, вычесть зарплату, вычесть общие расходы,
+   * вычесть уже переведённое». Пока GC не заплатил ничего, месяц убыточный и
+   * расчёт показывает ровно обратное тому, чего он ждёт, — а через неделю
+   * перевернётся. Без этой строки он каждый раз будет спотыкаться.
+   *
+   * Деньги по контракту кладутся на владельца: платят ему, и все расходы тоже
+   * с его карты. Возмещаемое сюда не входит — это не прибыль. */
+  const unpaidContract = a.sites.reduce((s, site) => {
+    const agreed = site.contract_amount ?? 0
+    if (agreed <= 0) return s
+    const paid = a.income.filter(i => i.site_id === site.id).reduce((x, i) => x + i.amount, 0)
+    return s + Math.max(0, agreed - paid)
+  }, 0)
+  const owner = a.partners.find(p => p.is_owner)
+  const projected = unpaidContract > 0 ? partners.map(p => {
+    const cut = (allTime.profit + unpaidContract) * p.share
+    const collected = p.collected + (owner && p.id === owner.id ? unpaidContract : 0)
+    return { id: p.id, name: p.name, balance: cut + p.fronted - p.takenAll - collected }
+  }) : null
+
+  return {
+    totals: t, allTime, partners, payouts, unpaidContract, projected,
+    sites: a.sites.map(s => ({ id: s.id, name: s.name })),
+  }
 }
 
 export async function gcData(siteId: string, from?: string, to?: string) {
