@@ -24,10 +24,10 @@ async function loadAll() {
     c.from('sites').select('*').order('created_at', { ascending: false }),
     c.from('workers').select('*').order('name'),
     c.from('expenses').select('id,site_id,spent_on,amount,kind,category,vendor,receipt_path,reimbursed_on,note,paid_by').order('spent_on', { ascending: false }).order('created_at', { ascending: false }),
-    c.from('income').select('id,site_id,received_on,amount,note,source'),
+    c.from('income').select('id,site_id,received_on,amount,note,source,received_by'),
     c.from('schedule').select('worker_id,site_id,work_day'),
     c.from('payroll').select('id,site_id,worker_id,amount,paid_on,note,paid_by'),
-    c.from('partner_payouts').select('id,partner_id,site_id,paid_on,amount,note'),
+    c.from('partner_payouts').select('id,partner_id,site_id,paid_on,amount,note,paid_by'),
     c.from('partners').select('id,name,share,is_owner').order('name'),
   ])
   for (const r of [sites, workers, expenses, income, sched, payroll, payouts, partners]) if (r.error) throw new Error(r.error.message)
@@ -35,10 +35,10 @@ async function loadAll() {
     sites: ((sites.data || []) as Site[]).map(s => ({ ...s, contract_amount: s.contract_amount == null ? null : n(s.contract_amount) })),
     workers: ((workers.data || []) as Worker[]).map(w => ({ ...w, default_rate: w.default_rate == null ? null : n(w.default_rate) })),
     expenses: ((expenses.data || []) as Expense[]).map(e => ({ ...e, amount: n(e.amount) })),
-    income: (income.data || []).map(i => ({ ...i, amount: n(i.amount) })) as { id: string; site_id: string | null; received_on: string; amount: number; note: string | null; source: string | null }[],
+    income: (income.data || []).map(i => ({ ...i, amount: n(i.amount) })) as { id: string; site_id: string | null; received_on: string; amount: number; note: string | null; source: string | null; received_by?: string | null }[],
     sched: (sched.data || []) as Sched[],
     payroll: (payroll.data || []).map(p => ({ ...p, amount: n(p.amount) })) as { id: string; site_id: string | null; worker_id: string; amount: number; paid_on: string | null; note: string | null; paid_by: string | null }[],
-    payouts: (payouts.data || []).map(p => ({ ...p, amount: n(p.amount) })) as { id: string; partner_id: string; site_id: string | null; paid_on: string; amount: number; note: string | null }[],
+    payouts: (payouts.data || []).map(p => ({ ...p, amount: n(p.amount) })) as { id: string; partner_id: string; site_id: string | null; paid_on: string; amount: number; note: string | null; paid_by?: string | null }[],
     partners: (partners.data || []).map(p => ({ ...p, share: n(p.share) })) as { id: string; name: string; share: number; is_owner: boolean }[],
   }
 }
@@ -114,8 +114,10 @@ export async function homeData(month: string) {
   const otherIncome = a.income
     .filter(i => !i.site_id && i.received_on >= from && i.received_on < to)
     .sort((x, y) => (x.received_on < y.received_on ? 1 : -1))
-    .map(i => ({ id: i.id, amount: i.amount, received_on: i.received_on, source: i.source, note: i.note }))
-  return { totals: t, reimbOut: out.reimbOut, receipts: out.receipts, outSites, active, workOwed, contracted, entries: entriesOf(a, a.expenses.slice(0, 40)), count: a.expenses.length, sites: cards, otherIncome }
+    .map(i => ({ id: i.id, amount: i.amount, received_on: i.received_on, source: i.source, note: i.note, received_by: i.received_by ?? null }))
+  // Партнёры нужны форме прихода: на чей счёт легли деньги решает делёж.
+  const partners = a.partners.map(p => ({ id: p.id, name: p.name }))
+  return { totals: t, reimbOut: out.reimbOut, receipts: out.receipts, outSites, active, workOwed, contracted, entries: entriesOf(a, a.expenses.slice(0, 40)), count: a.expenses.length, sites: cards, otherIncome, partners }
 }
 
 export type SiteCard = Site & SiteTotals & { gc: GcBalance; lastNote: { body: string; created_at: string } | null }
@@ -214,23 +216,38 @@ export async function splitData(month: string) {
      + fronted   — сколько он оплатил из своего кармана (свои расходы и
                    выплаты бригаде): это вложение в общее дело, и оно
                    возвращается ему до делёжа,
-     − taken     — сколько уже получил переводами.
-     Возмещаемое сюда не входит: его возвращает управляющая компания. */
+     − taken     — сколько уже получил переводами,
+     − collected — сколько прихода легло лично ему на счёт.
+
+     Возмещаемое сюда не входит: его возвращает управляющая компания.
+
+     `collected` появился 15 сентября. До него приход считался лежащим «у
+     фирмы», которой как кошелька не существует, и расчёт переставал сходиться:
+     одному должны $3 242, другой должен $3 042, разница ровно «приход минус
+     выплата». Деньги, пришедшие человеку на карту, — такой же его личный
+     баланс, как и потраченные с неё. */
   const partners = a.partners.map(p => {
     const mine = a.payouts.filter(x => x.partner_id === p.id)
     const takenMonth = mine.filter(x => x.paid_on >= from && x.paid_on < to).reduce((s, x) => s + x.amount, 0)
     const takenAll = mine.reduce((s, x) => s + x.amount, 0)
     const frontedExpenses = a.expenses.filter(e => e.kind === 'own' && e.paid_by === p.id).reduce((s, e) => s + e.amount, 0)
     const frontedWages = a.payroll.filter(x => x.paid_by === p.id).reduce((s, x) => s + x.amount, 0)
-    const fronted = frontedExpenses + frontedWages
+    // Выплата партнёру — это перемещение денег между двумя людьми. У
+    // получателя она учтена как taken; плательщику её надо зачесть, иначе его
+    // вклад занижен ровно на эту сумму и расчёт не сходится (миграция 0010).
+    const frontedPayouts = a.payouts.filter(x => x.paid_by === p.id).reduce((s, x) => s + x.amount, 0)
+    const fronted = frontedExpenses + frontedWages + frontedPayouts
     const frontedMonth = a.expenses.filter(e => e.kind === 'own' && e.paid_by === p.id && e.spent_on >= from && e.spent_on < to).reduce((s, e) => s + e.amount, 0)
       + a.payroll.filter(x => x.paid_by === p.id && (x.paid_on || '') >= from && (x.paid_on || '') < to).reduce((s, x) => s + x.amount, 0)
+      + a.payouts.filter(x => x.paid_by === p.id && x.paid_on >= from && x.paid_on < to).reduce((s, x) => s + x.amount, 0)
+    const collected = a.income.filter(i => i.received_by === p.id).reduce((s, i) => s + i.amount, 0)
+    const collectedMonth = a.income.filter(i => i.received_by === p.id && i.received_on >= from && i.received_on < to).reduce((s, i) => s + i.amount, 0)
     const cutAll = allTime.profit * p.share
     return {
       ...p,
-      cut: t.profit * p.share, takenMonth, frontedMonth,
-      cutAll, takenAll, fronted,
-      balance: cutAll + fronted - takenAll,   // > 0 — человеку должны
+      cut: t.profit * p.share, takenMonth, frontedMonth, collectedMonth,
+      cutAll, takenAll, fronted, collected,
+      balance: cutAll + fronted - takenAll - collected,   // > 0 — человеку должны
     }
   })
   const payouts = a.payouts

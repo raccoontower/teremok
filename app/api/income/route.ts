@@ -16,6 +16,7 @@ export async function POST(req: Request) {
     received_on: b.received_on || new Date().toISOString().slice(0, 10),
     source: source || null,
     note: b.note || null,
+    received_by: b.received_by || null,
   }).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)

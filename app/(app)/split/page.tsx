@@ -35,6 +35,7 @@ export default async function Split({ searchParams }: { searchParams: Promise<{ 
               <div className="num mt-1.5 text-xl">{money(p.cut)}</div>
               {p.frontedMonth > 0 && <div className="mt-0.5 text-xs text-[var(--muted)]">paid {money(p.frontedMonth)} from own card</div>}
               {p.takenMonth > 0 && <div className="mt-0.5 text-xs text-[var(--muted)]">received {money(p.takenMonth)}</div>}
+              {p.collectedMonth > 0 && <div className="mt-0.5 text-xs text-[var(--muted)]">{money(p.collectedMonth)} came to his account</div>}
             </div>
           ))}
         </div>
@@ -53,10 +54,28 @@ export default async function Split({ searchParams }: { searchParams: Promise<{ 
                 <span>Own card</span><span className="mono text-[var(--fg)]">+{money(p.fronted)}</span>
               </div>
             )}
+            {p.collected > 0 && (
+              <div className="mt-1 flex items-baseline justify-between text-xs text-[var(--muted)]">
+                <span>Came to his account</span><span className="mono">−{money(p.collected)}</span>
+              </div>
+            )}
             <div className="mt-1 flex items-baseline justify-between text-xs text-[var(--muted)]"><span>Received</span><span className="mono">−{money(p.takenAll)}</span></div>
             <div className="my-3 h-px bg-white/7" />
-            <div className="label-xs" style={{ color: p.balance < 0 ? 'var(--reimb)' : 'var(--own)' }}>{p.balance < 0 ? 'Took extra' : 'Still owed'}</div>
-            <div className="num mt-1 text-2xl" style={{ color: p.balance < 0 ? 'var(--reimb)' : 'var(--own)' }}>{money(Math.abs(p.balance))}</div>
+            {/* Долг — цветом тревоги, а не зелёным. Зелёная надпись «Took extra»
+                читалась как «человек в плюсе», хотя означает ровно обратное:
+                он должен вернуть. Владелец на этом и споткнулся. */}
+            <div className="label-xs" style={{ color: p.balance < 0 ? 'var(--own)' : 'var(--reimb)' }}>{p.balance < 0 ? 'Owes back' : 'To be repaid'}</div>
+            <div className="num mt-1 text-2xl" style={{ color: p.balance < 0 ? 'var(--own)' : 'var(--reimb)' }}>{money(Math.abs(p.balance))}</div>
+            {/* Из чего сложилось: иначе приходится складывать в уме, и цифра
+                вида «взял тысячу, должен три» выглядит ошибкой. */}
+            <div className="mt-1.5 text-[11px] leading-snug text-[var(--muted)]">
+              {p.cutAll < 0
+                ? `${money(Math.abs(p.cutAll))} — his half of the loss`
+                : `${money(p.cutAll)} — his half of the profit`}
+              {p.takenAll > 0 ? `, ${money(p.takenAll)} taken` : ''}
+              {p.collected > 0 ? `, ${money(p.collected)} came in to him` : ''}
+              {p.fronted > 0 ? `, ${money(p.fronted)} out of his pocket` : ''}
+            </div>
             <Payout partner={{ id: p.id, name: p.name, owed: p.balance }} sites={d.sites} />
           </div>
         ))}

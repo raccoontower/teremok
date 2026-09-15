@@ -92,8 +92,8 @@ export async function GET(req: Request) {
         ['Wages', (-t.wages).toFixed(2)],
         ['Profit', t.profit.toFixed(2)],
         [],
-        ['Partner', 'Share', 'Cut this month', 'Profit share all time', 'Paid from own card', 'Received', 'Balance'],
-        ...d.partners.map(p => [p.name, `${Math.round(p.share * 100)}%`, p.cut.toFixed(2), p.cutAll.toFixed(2), p.fronted.toFixed(2), p.takenAll.toFixed(2), p.balance.toFixed(2)]),
+        ['Partner', 'Share', 'Cut this month', 'Profit share all time', 'Paid from own card', 'Received', 'Came to his account', 'Balance'],
+        ...d.partners.map(p => [p.name, `${Math.round(p.share * 100)}%`, p.cut.toFixed(2), p.cutAll.toFixed(2), p.fronted.toFixed(2), p.takenAll.toFixed(2), p.collected.toFixed(2), p.balance.toFixed(2)]),
         [],
         ['Reimbursable (not in the split)', t.reimb.toFixed(2)],
         [],
@@ -118,6 +118,7 @@ export async function GET(req: Request) {
           `${pad(p.name, 28)}\n` +
           `${pad('  profit share', 28)}${money(p.cutAll, true).padStart(14)}\n` +
           (p.fronted ? `${pad('  paid from own card', 28)}${('+' + money(p.fronted, true)).padStart(14)}\n` : '') +
+          (p.collected ? `${pad('  came to his account', 28)}${('-' + money(p.collected, true)).padStart(14)}\n` : '') +
           `${pad('  received', 28)}${('-' + money(p.takenAll, true)).padStart(14)}\n` +
           `${pad(p.balance < 0 ? '  took extra' : '  still owed', 28)}${money(Math.abs(p.balance), true).padStart(14)}`),
         '',

@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Sheet, SheetRow, StatusPill, STATUS, useAction } from '@/components/ui'
 import type { Site } from '@/lib/queries'
 
@@ -9,6 +10,7 @@ export function SiteActions({ site }: { site: Site }) {
   const [contract, setContract] = useState(site.contract_amount == null ? '' : String(site.contract_amount))
   const [amount, setAmount] = useState(''); const [note, setNote] = useState('')
   const { run, busy, err } = useAction()
+  const router = useRouter()
   return (
     <div className="flex flex-none items-center gap-2">
       <button onClick={() => setSheet('contract')} className="btn-ghost px-3.5">Contract</button>
@@ -17,6 +19,19 @@ export function SiteActions({ site }: { site: Site }) {
       {sheet === 'status' && (
         <Sheet title="Status" onClose={() => setSheet(null)}>
           {Object.keys(STATUS).map(s => <SheetRow key={s} label={s} dot={STATUS[s].color} active={s === site.status} onClick={async () => { await run(`/api/sites/${site.id}`, { status: s }, 'PATCH'); setSheet(null) }} />)}
+          {/* Удаление живёт здесь, а не отдельной кнопкой в шапке: объект
+              удаляют редко, а промахнуться по шапке на телефоне легко. Сервер
+              откажет, если к объекту привязаны деньги, и скажет почему. */}
+          <button
+            disabled={busy}
+            onClick={async () => {
+              if (!confirm(`Delete ${site.name}? Only works if nothing is attached to it.`)) return
+              if (await run(`/api/sites/${site.id}`, {}, 'DELETE')) router.push('/sites')
+            }}
+            className="mt-2 h-11 text-[15px] text-[var(--own)]">
+            Delete site
+          </button>
+          {err && <div className="text-sm text-[var(--own)]">{err}</div>}
         </Sheet>
       )}
       {sheet === 'contract' && (

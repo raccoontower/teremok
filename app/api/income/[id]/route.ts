@@ -11,6 +11,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (b.source !== undefined) patch.source = (b.source || '').trim().slice(0, 120) || null
   if (b.note !== undefined) patch.note = b.note || null
   if (b.received_on !== undefined) patch.received_on = b.received_on
+  if (b.received_by !== undefined) patch.received_by = b.received_by || null
   const { error } = await db().from('income').update(patch).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
