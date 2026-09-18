@@ -8,6 +8,12 @@ import type { Site } from '@/lib/queries'
 export function SiteActions({ site }: { site: Site }) {
   const [sheet, setSheet] = useState<'status' | 'income' | 'contract' | null>(null)
   const [contract, setContract] = useState(site.contract_amount == null ? '' : String(site.contract_amount))
+  // Раскопки: длина в футах и ставка. Ставка почти всегда $15, поэтому она
+  // подставлена заранее — на площадке остаётся ввести только длину.
+  const [feet, setFeet] = useState(site.trench_feet == null ? '' : String(site.trench_feet))
+  const [rate, setRate] = useState(site.trench_rate == null ? '15' : String(site.trench_rate))
+  const trench = (Number(feet) || 0) * (Number(rate) || 0)
+  const total = (Number(contract) || 0) + trench
   const [amount, setAmount] = useState(''); const [note, setNote] = useState('')
   const { run, busy, err } = useAction()
   const router = useRouter()
@@ -37,9 +43,24 @@ export function SiteActions({ site }: { site: Site }) {
       {sheet === 'contract' && (
         <Sheet title={`Contract · ${site.name}`} onClose={() => setSheet(null)}>
           <div className="text-sm text-[var(--muted)]">What the GC agreed to pay for the work. Materials are counted separately.</div>
+          <label className="mt-1 block text-xs text-[var(--muted)]">Base price</label>
           <input className="field num text-2xl" inputMode="decimal" placeholder="$0" value={contract} onChange={e => setContract(e.target.value)} autoFocus />
+
+          <label className="mt-3 block text-xs text-[var(--muted)]">Trenching</label>
+          <div className="flex gap-2">
+            <input className="field num flex-1" inputMode="decimal" placeholder="feet" value={feet} onChange={e => setFeet(e.target.value)} />
+            <input className="field num w-28" inputMode="decimal" placeholder="$/ft" value={rate} onChange={e => setRate(e.target.value)} />
+          </div>
+          {/* Итог показываем прямо здесь: цифра, которую владелец назовёт
+              управляющей компании, не должна считаться в уме на площадке. */}
+          <div className="mt-2 flex items-baseline justify-between text-sm">
+            <span className="text-[var(--muted)]">
+              {trench > 0 ? `${Number(feet) || 0} ft × $${Number(rate) || 0} = $${trench.toLocaleString('en-US')}` : 'No trenching on this site'}
+            </span>
+            <span className="num text-lg">${total.toLocaleString('en-US')}</span>
+          </div>
           {err && <div className="text-sm text-[var(--own)]">{err}</div>}
-          <button disabled={busy} onClick={async () => { if (await run(`/api/sites/${site.id}`, { contract_amount: contract }, 'PATCH')) setSheet(null) }} className="btn mt-2">Save</button>
+          <button disabled={busy} onClick={async () => { if (await run(`/api/sites/${site.id}`, { contract_amount: contract, trench_feet: feet, trench_rate: rate }, 'PATCH')) setSheet(null) }} className="btn mt-2">Save</button>
         </Sheet>
       )}
       {sheet === 'income' && (

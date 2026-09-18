@@ -6,7 +6,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const patch: Record<string, unknown> = {}
   if (b.status && STATUSES.includes(b.status)) patch.status = b.status
   for (const k of ['name', 'address', 'gc_company', 'starts_on', 'ends_on', 'notes']) if (b[k] !== undefined) patch[k] = b[k] || null
-  if (b.contract_amount !== undefined) patch.contract_amount = b.contract_amount === '' || b.contract_amount === null ? null : Number(b.contract_amount)
+  for (const k of ['contract_amount', 'trench_feet', 'trench_rate']) {
+    if (b[k] === undefined) continue
+    patch[k] = b[k] === '' || b[k] === null ? null : Number(b[k])
+  }
   const { error } = await db().from('sites').update(patch).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })

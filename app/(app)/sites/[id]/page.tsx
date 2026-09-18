@@ -13,6 +13,7 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
   const d = await siteData(id); if (!d) notFound()
   const { site, totals: t, gc } = d
   const dates = site.starts_on ? `${shortDate(site.starts_on)} – ${site.ends_on ? shortDate(site.ends_on) : 'ongoing'}` : ''
+  const trenchTotal = (site.trench_feet ?? 0) * (site.trench_rate ?? 0)
   return (
     <div className="lg:max-w-[720px]">
       <Link href="/sites" className="flex min-h-11 items-center text-sm text-[var(--muted)]">‹ Sites</Link>
@@ -52,6 +53,15 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
               <div className="num mt-1.5 text-lg text-[var(--own)]">{gc.contract == null ? '—' : money(gc.workOwed)}</div>
             </div>
           </div>
+          {/* Из чего сложился контракт: базовая цена плюс раскопки по футам.
+              Без этой строки цифра в «Contract» выглядит взятой с потолка, а
+              управляющая компания спрашивает именно про погонные футы. */}
+          {trenchTotal > 0 && (
+            <div className="mt-2.5 flex items-baseline justify-between text-[13px] text-[var(--muted)]">
+              <span>Base {money(site.contract_amount ?? 0)} + trenching {site.trench_feet} ft × {money(site.trench_rate ?? 0)}</span>
+              <span className="num">{money(trenchTotal)}</span>
+            </div>
+          )}
           {gc.contract == null && <div className="mt-3 text-[13px] text-[var(--muted)]">Tap Contract above to set what the GC pays for the work.</div>}
           <div className="mt-3.5 flex items-baseline justify-between border-t border-white/7 pt-3">
             <div className="tag">Materials to reimburse</div>

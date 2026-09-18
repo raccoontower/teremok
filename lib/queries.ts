@@ -10,7 +10,22 @@ import { monthRange, today } from './money'
  * (payroll — только выплаты). Данных мало (4 человека, сотни строк), поэтому
  * проще тянуть всё и считать в TS, чем городить SQL под каждый срез.
  */
-export type Site = { id: string; name: string; address: string | null; gc_company: string | null; status: string; starts_on: string | null; ends_on: string | null; contract_amount: number | null }
+export type Site = { id: string; name: string; address: string | null; gc_company: string | null; status: string; starts_on: string | null; ends_on: string | null; contract_amount: number | null; trench_feet: number | null; trench_rate: number | null }
+
+/** Сколько всего должен GC за работу по объекту.
+ *
+ *  Раскопки на части объектов оплачиваются по погонному футу и в договоре
+ *  идут отдельной позицией: базовая цена плюс длина на ставку. Хранить одну
+ *  сумму было нельзя — длину траншеи уточняют уже после начала работ, а
+ *  показывать управляющей компании надо, из чего сложилась цифра.
+ *
+ *  `null` означает «договор не заведён» и ведёт себя как раньше: строки про
+ *  долг за работу не появляются. Ноль — это заведённый договор на ноль. */
+export function contractTotal(s: Pick<Site, 'contract_amount' | 'trench_feet' | 'trench_rate'>): number | null {
+  const trench = (s.trench_feet ?? 0) * (s.trench_rate ?? 0)
+  if (s.contract_amount == null && trench === 0) return null
+  return (s.contract_amount ?? 0) + trench
+}
 export type Worker = { id: string; name: string; default_pay: 'day_rate' | 'fixed_amount' | 'fixed_percent'; default_rate: number | null; active: boolean; is_partner: boolean }
 export type Expense = { id: string; site_id: string | null; spent_on: string; amount: number; kind: 'reimbursable' | 'own'; category: string; vendor: string | null; receipt_path: string | null; reimbursed_on: string | null; note: string | null; paid_by: string | null }
 type Sched = { worker_id: string; site_id: string; work_day: string }
@@ -32,7 +47,7 @@ async function loadAll() {
   ])
   for (const r of [sites, workers, expenses, income, sched, payroll, payouts, partners]) if (r.error) throw new Error(r.error.message)
   return {
-    sites: ((sites.data || []) as Site[]).map(s => ({ ...s, contract_amount: s.contract_amount == null ? null : n(s.contract_amount) })),
+    sites: ((sites.data || []) as Site[]).map(s => ({ ...s, contract_amount: s.contract_amount == null ? null : n(s.contract_amount), trench_feet: s.trench_feet == null ? null : n(s.trench_feet), trench_rate: s.trench_rate == null ? null : n(s.trench_rate) })),
     workers: ((workers.data || []) as Worker[]).map(w => ({ ...w, default_rate: w.default_rate == null ? null : n(w.default_rate) })),
     expenses: ((expenses.data || []) as Expense[]).map(e => ({ ...e, amount: n(e.amount) })),
     income: (income.data || []).map(i => ({ ...i, amount: n(i.amount) })) as { id: string; site_id: string | null; received_on: string; amount: number; note: string | null; source: string | null; received_by?: string | null }[],
@@ -106,7 +121,7 @@ export async function homeData(month: string) {
   const outSites = new Set(a.expenses.filter(e => e.kind === 'reimbursable' && !e.reimbursed_on).map(e => e.site_id)).size
   const cards = await sitesList(a, lines)
   const workOwed = cards.reduce((s, c) => s + c.gc.workOwed, 0)
-  const contracted = cards.reduce((s, c) => s + (c.contract_amount || 0), 0)
+  const contracted = cards.reduce((s, c) => s + (contractTotal(c) || 0), 0)
   const active = a.sites.filter(s => s.status === 'active').length
   // Приход без объекта не виден ни на одной карточке стройки — он влияет на
   // прибыль месяца и обязан быть показан отдельной строкой, иначе цифра
@@ -122,7 +137,7 @@ export async function homeData(month: string) {
 
 export type SiteCard = Site & SiteTotals & { gc: GcBalance; lastNote: { body: string; created_at: string } | null }
 function gcBalance(site: Site, t: SiteTotals): GcBalance {
-  const contract = site.contract_amount
+  const contract = contractTotal(site)
   const workOwed = contract == null ? 0 : Math.max(0, contract - t.income)
   return { contract, paidWork: t.income, workOwed, materialsOwed: t.reimbOut, owed: workOwed + t.reimbOut }
 }
@@ -288,7 +303,7 @@ export async function splitData(month: string) {
    * Деньги по контракту кладутся на владельца: платят ему, и все расходы тоже
    * с его карты. Возмещаемое сюда не входит — это не прибыль. */
   const unpaidContract = a.sites.reduce((s, site) => {
-    const agreed = site.contract_amount ?? 0
+    const agreed = contractTotal(site) ?? 0
     if (agreed <= 0) return s
     const paid = a.income.filter(i => i.site_id === site.id).reduce((x, i) => x + i.amount, 0)
     return s + Math.max(0, agreed - paid)
