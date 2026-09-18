@@ -62,7 +62,10 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
               <span className="num">{money(trenchTotal)}</span>
             </div>
           )}
-          {gc.contract == null && <div className="mt-3 text-[13px] text-[var(--muted)]">Tap Contract above to set what the GC pays for the work.</div>}
+          {/* Подсказка называет обе позиции: владелец 18.09 искал отдельную
+              кнопку под раскопки и не нашёл — «Contract» не читалось как
+              место, где задаётся цена за фут. */}
+          {gc.contract == null && <div className="mt-3 text-[13px] text-[var(--muted)]">Tap <b className="text-[var(--fg)]">Contract</b> above — base price and trenching ($/ft) are both set there.</div>}
           <div className="mt-3.5 flex items-baseline justify-between border-t border-white/7 pt-3">
             <div className="tag">Materials to reimburse</div>
             <div className="num text-[var(--reimb)]">{money(gc.materialsOwed)}</div>
