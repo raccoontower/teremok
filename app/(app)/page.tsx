@@ -56,8 +56,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
             <div className="num mt-1 text-lg text-[var(--reimb)]">{money(d.reimbOut)}</div>
           </div>
         </div>
-        <div className="mt-2 text-[13px] text-[var(--muted)]">{d.receipts} {d.receipts === 1 ? 'receipt' : 'receipts'} · {d.outSites} {d.outSites === 1 ? 'site' : 'sites'}</div>
-        <Link href="/sites" className="btn-reimb mt-4 flex items-center justify-center lg:mt-auto">GC report →</Link>
+        <div className="mt-2 text-[13px] text-[var(--muted)]">{d.openBuys} {d.openBuys === 1 ? 'purchase' : 'purchases'} waiting · {d.receipts} with a receipt</div>
+        {/* Отчёт по материалам теперь один на всё, а не по объекту. */}
+        <Link href="/materials" className="btn-reimb mt-4 flex items-center justify-center lg:mt-auto">Materials report →</Link>
       </div>
 
       <div>
@@ -75,7 +76,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
           {d.sites.map(s => (
             <Link key={s.id} href={`/sites/${s.id}`} className="row block px-[18px] py-3.5">
               <div className="flex items-center justify-between gap-2.5"><div className="text-sm font-medium">{s.name}</div><StatusPill status={s.status} /></div>
-              <div className="mt-2.5 flex items-baseline justify-between"><div className="num text-[17px]">{money(s.profit)}</div><div className="num text-sm text-[var(--reimb)]">{money(s.reimbOut)}</div></div>
+              <div className="mt-2.5 flex items-baseline justify-between"><div className="num text-[17px]">{money(s.profit)}</div><div className="num text-sm" style={{ color: s.gc.workOwed > 0 ? 'var(--own)' : 'var(--reimb)' }}>{s.gc.contract == null ? '—' : s.gc.workOwed > 0 ? money(s.gc.workOwed) : 'paid'}</div></div>
             </Link>
           ))}
           {!d.sites.length && <div className="row px-4 py-5 text-sm text-[var(--muted)]">No sites yet.</div>}

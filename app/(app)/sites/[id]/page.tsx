@@ -66,12 +66,12 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
               кнопку под раскопки и не нашёл — «Contract» не читалось как
               место, где задаётся цена за фут. */}
           {gc.contract == null && <div className="mt-3 text-[13px] text-[var(--muted)]">Tap <b className="text-[var(--fg)]">Contract</b> above — base price and trenching ($/ft) are both set there.</div>}
-          <div className="mt-3.5 flex items-baseline justify-between border-t border-white/7 pt-3">
-            <div className="tag">Materials to reimburse</div>
-            <div className="num text-[var(--reimb)]">{money(gc.materialsOwed)}</div>
-          </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <div className="tag">Total the GC owes</div>
+          {/* Материалы больше не считаются по объекту (решение владельца
+              18.09.2026): закупка идёт под несколько площадок сразу, и делить
+              её по объектам было ложной точностью. Возмещаемое целиком живёт
+              на /materials — там же и отчёт для управляющей компании. */}
+          <div className="mt-2 flex items-baseline justify-between border-t border-white/7 pt-3">
+            <div className="tag">Total the GC owes for work</div>
             <div className="num text-[22px]" style={{ color: gc.owed > 0 ? 'var(--own)' : 'var(--reimb)' }}>{money(gc.owed)}</div>
           </div>
         </div>
@@ -79,11 +79,10 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
 
       <div className="reimb-panel mt-3 flex items-center gap-3.5 rounded-[20px] px-5 py-4">
         <div className="min-w-0 flex-1">
-          <div className="label-xs text-[var(--reimb)]" style={{ fontSize: 11 }}>Reimbursable · not in profit</div>
-          <div className="num mt-1.5 text-[26px] text-[var(--reimb)]">{money(t.reimbOut)}</div>
-          {t.reimb > t.reimbOut && <div className="mt-0.5 text-xs text-[var(--muted)]">{money(t.reimb - t.reimbOut)} already paid back</div>}
+          <div className="label-xs text-[var(--reimb)]" style={{ fontSize: 11 }}>Materials</div>
+          <div className="mt-1 text-[13px] text-[var(--muted)]">Kept in one pile for all sites, not split per site.</div>
         </div>
-        <Link href={`/gc/${site.id}`} className="btn-reimb flex flex-none items-center px-4">GC report</Link>
+        <Link href="/materials" className="btn-reimb flex flex-none items-center px-4">Materials</Link>
       </div>
 
       {d.income.length > 0 && (

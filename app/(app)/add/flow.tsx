@@ -62,7 +62,11 @@ export function AddFlow({ sites, guess, fromSchedule, partners }: Props) {
     const fd = new FormData()
     fd.append('amount', String(amount)); fd.append('kind', kind); fd.append('category', kind === 'reimbursable' ? 'materials' : cat)
     if (vendor.trim()) fd.append('vendor', vendor.trim()); fd.append('spent_on', date)
-    if (site) fd.append('site_id', site); if (file) fd.append('file', file); if (g) fd.append('ocr', JSON.stringify(g))
+    // Возмещаемое к объекту больше не привязывается (решение владельца
+    // 18.09.2026): материал закупают сразу под несколько площадок, и выбор
+    // объекта на чеке был догадкой, которая потом попадала в отчёт.
+    if (site && kind === 'own') fd.append('site_id', site)
+    if (file) fd.append('file', file); if (g) fd.append('ocr', JSON.stringify(g))
     if (note.trim()) fd.append('note', note.trim())
     if (payer) fd.append('paid_by', payer)
     const r = await fetch('/api/expenses', { method: 'POST', body: fd }); const j = await r.json().catch(() => ({ error: 'bad response' }))
@@ -151,9 +155,16 @@ export function AddFlow({ sites, guess, fromSchedule, partners }: Props) {
                     style={{ color: kc, borderColor: isReimb ? 'rgba(52,209,125,.34)' : 'rgba(242,177,52,.34)', background: isReimb ? 'rgba(52,209,125,.1)' : 'rgba(242,177,52,.1)' }}>
               {isReimb ? 'Reimbursable' : 'Own cost'}<div className="mt-0.5 text-[11px] font-normal text-[var(--muted)]">tap to flip</div>
             </button>
-            <button onClick={() => setSheet('site')} className="glass min-h-[52px] flex-1 px-3.5 text-left text-sm font-medium">
-              <span className="block truncate">{siteName}</span><div className="mt-0.5 text-[11px] font-normal text-[var(--muted)]">{fromSchedule && site === guess ? 'from schedule' : 'tap to change'}</div>
-            </button>
+            {isReimb ? (
+              <div className="glass flex min-h-[52px] flex-1 flex-col justify-center px-3.5 text-sm">
+                <span className="text-[var(--muted)]">Materials pile</span>
+                <span className="mt-0.5 text-[11px] text-[var(--dim)]">no site needed</span>
+              </div>
+            ) : (
+              <button onClick={() => setSheet('site')} className="glass min-h-[52px] flex-1 px-3.5 text-left text-sm font-medium">
+                <span className="block truncate">{siteName}</span><div className="mt-0.5 text-[11px] font-normal text-[var(--muted)]">{fromSchedule && site === guess ? 'from schedule' : 'tap to change'}</div>
+              </button>
+            )}
           </div>
           {!isReimb && <button onClick={() => setSheet('cat')} className="glass mt-2.5 flex min-h-[44px] w-full items-center justify-between px-3.5 text-sm"><span className="text-[var(--muted)]">Category</span><span>{cat}</span></button>}
           {partners.length > 1 && (

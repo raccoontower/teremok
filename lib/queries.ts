@@ -118,7 +118,9 @@ export async function homeData(month: string) {
   const t = totalsFor(a, lines, inMonth, l => l.month === month)
   // «висит на GC» — всегда за всё время: чек августа не перестаёт быть долгом в сентябре
   const out = totalsFor(a, lines, () => true, () => false)
-  const outSites = new Set(a.expenses.filter(e => e.kind === 'reimbursable' && !e.reimbursed_on).map(e => e.site_id)).size
+  // Сколько покупок ещё не вернули. Раньше здесь считались объекты, но с
+  // 18.09.2026 материалы к объектам не привязаны — считать нечего.
+  const openBuys = a.expenses.filter(e => e.kind === 'reimbursable' && !e.reimbursed_on).length
   const cards = await sitesList(a, lines)
   const workOwed = cards.reduce((s, c) => s + c.gc.workOwed, 0)
   const contracted = cards.reduce((s, c) => s + (contractTotal(c) || 0), 0)
@@ -132,14 +134,22 @@ export async function homeData(month: string) {
     .map(i => ({ id: i.id, amount: i.amount, received_on: i.received_on, source: i.source, note: i.note, received_by: i.received_by ?? null }))
   // Партнёры нужны форме прихода: на чей счёт легли деньги решает делёж.
   const partners = a.partners.map(p => ({ id: p.id, name: p.name }))
-  return { totals: t, reimbOut: out.reimbOut, receipts: out.receipts, outSites, active, workOwed, contracted, entries: entriesOf(a, a.expenses.slice(0, 40)), count: a.expenses.length, sites: cards, otherIncome, partners }
+  return { totals: t, reimbOut: out.reimbOut, receipts: out.receipts, openBuys, active, workOwed, contracted, entries: entriesOf(a, a.expenses.slice(0, 40)), count: a.expenses.length, sites: cards, otherIncome, partners }
 }
 
 export type SiteCard = Site & SiteTotals & { gc: GcBalance; lastNote: { body: string; created_at: string } | null }
+/** Баланс по объекту — только работа.
+ *
+ *  Материалы 18.09.2026 отвязаны от объектов (решение владельца): закупка
+ *  идёт под несколько площадок одного подрядчика, и раскладывать её по
+ *  объектам было ложной точностью. Возмещаемое целиком считается на
+ *  `/materials`, поэтому `materialsOwed` здесь всегда ноль и в сумму долга
+ *  не входит. Поле оставлено, чтобы не переписывать тип ради нуля.
+ */
 function gcBalance(site: Site, t: SiteTotals): GcBalance {
   const contract = contractTotal(site)
   const workOwed = contract == null ? 0 : Math.max(0, contract - t.income)
-  return { contract, paidWork: t.income, workOwed, materialsOwed: t.reimbOut, owed: workOwed + t.reimbOut }
+  return { contract, paidWork: t.income, workOwed, materialsOwed: 0, owed: workOwed }
 }
 
 async function sitesList(a: All, lines: WageLine[]): Promise<SiteCard[]> {
