@@ -22,11 +22,17 @@ export function NewSite() {
                  value={f.contract_amount} onChange={e => setF({ ...f, contract_amount: e.target.value })} />
           {/* Раскопки есть не везде, поэтому поля пустые по умолчанию, а
               ставка подставлена: вводить $15 на каждом объекте незачем. */}
-          <div className="flex gap-2">
-            <input className="field num flex-1" inputMode="decimal" placeholder="Trenching, feet"
-                   value={f.trench_feet} onChange={e => setF({ ...f, trench_feet: e.target.value })} />
-            <input className="field num w-28" inputMode="decimal" placeholder="$/ft"
-                   value={f.trench_rate} onChange={e => setF({ ...f, trench_rate: e.target.value })} />
+          <div className="grid grid-cols-[1fr_7rem] gap-2">
+            <div>
+              <div className="mb-1 text-[11px] text-[var(--dim)]">Trenching, ft</div>
+              <input className="field num" inputMode="decimal" placeholder="0"
+                     value={f.trench_feet} onChange={e => setF({ ...f, trench_feet: e.target.value })} />
+            </div>
+            <div>
+              <div className="mb-1 text-[11px] text-[var(--dim)]">$ per ft</div>
+              <input className="field num" inputMode="decimal" placeholder="15"
+                     value={f.trench_rate} onChange={e => setF({ ...f, trench_rate: e.target.value })} />
+            </div>
           </div>
           <select className="field" value={f.status} onChange={e => setF({ ...f, status: e.target.value })}>
             {['planned', 'active', 'done', 'invoiced', 'paid'].map(s => <option key={s} value={s}>{s}</option>)}

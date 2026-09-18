@@ -46,10 +46,21 @@ export function SiteActions({ site }: { site: Site }) {
           <label className="mt-1 block text-xs text-[var(--muted)]">Base price</label>
           <input className="field num text-2xl" inputMode="decimal" placeholder="$0" value={contract} onChange={e => setContract(e.target.value)} autoFocus />
 
+          {/* Сетка, а не flex: у `.field` ширина 100%, и во flex-строке поле
+              длины схлопывалось в узкую щель, а ставка занимала всё. Колонки
+              заданы явно. Подписи над полями, а не placeholder: на телефоне
+              placeholder исчезает от первого касания, и остаётся гадать,
+              что куда вводить. */}
           <label className="mt-3 block text-xs text-[var(--muted)]">Trenching</label>
-          <div className="flex gap-2">
-            <input className="field num flex-1" inputMode="decimal" placeholder="feet" value={feet} onChange={e => setFeet(e.target.value)} />
-            <input className="field num w-28" inputMode="decimal" placeholder="$/ft" value={rate} onChange={e => setRate(e.target.value)} />
+          <div className="grid grid-cols-[1fr_7rem] gap-2">
+            <div>
+              <div className="mb-1 text-[11px] text-[var(--dim)]">Length, ft</div>
+              <input className="field num text-2xl" inputMode="decimal" placeholder="0" value={feet} onChange={e => setFeet(e.target.value)} />
+            </div>
+            <div>
+              <div className="mb-1 text-[11px] text-[var(--dim)]">$ per ft</div>
+              <input className="field num text-2xl" inputMode="decimal" placeholder="15" value={rate} onChange={e => setRate(e.target.value)} />
+            </div>
           </div>
           {/* Итог показываем прямо здесь: цифра, которую владелец назовёт
               управляющей компании, не должна считаться в уме на площадке. */}
