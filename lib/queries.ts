@@ -1,6 +1,6 @@
 import 'server-only'
 import { db } from './db'
-import { monthRange, today } from './money'
+import { addDays, monthRange, today } from './money'
 
 /**
  * Слой чтения. Все цифры считаются здесь, в одном месте, по одному правилу:
@@ -218,7 +218,18 @@ export async function siteData(id: string) {
   const income = a.income.filter(i => i.site_id === id).sort((x, y) => y.received_on.localeCompare(x.received_on))
   const { data: notesData } = await db().from('site_notes').select('id,body,photo_path,created_at').eq('site_id', id).order('created_at', { ascending: false })
   const notes = (notesData || []) as SiteNote[]
-  return { site, totals, gc, notes, crew, entries: entriesOf(a, a.expenses.filter(e => e.site_id === id)), income }
+  // Для добавления человека прямо со страницы объекта: весь список бригады и
+  // назначения последних шести недель ПО ВСЕМ объектам. По всем — потому что
+  // человек в день стоит на одном объекте, и, ставя его сюда, надо честно
+  // показать, откуда он уедет.
+  const since = addDays(today(), -45)
+  const recent = a.sched.filter(s => s.work_day >= since)
+    .map(s => ({ work_day: s.work_day, worker_id: s.worker_id, site_id: s.site_id }))
+  const siteNames = Object.fromEntries(a.sites.map(s => [s.id, s.name]))
+  return {
+    site, totals, gc, notes, crew, entries: entriesOf(a, a.expenses.filter(e => e.site_id === id)), income,
+    workers: a.workers.map(w => ({ id: w.id, name: w.name })), recent, siteNames,
+  }
 }
 
 export async function crewData() {

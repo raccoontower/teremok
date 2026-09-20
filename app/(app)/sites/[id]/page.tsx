@@ -5,6 +5,7 @@ import { money, neg, initials, shortDate } from '@/lib/money'
 import { Entries } from '@/components/entries'
 import { SiteActions } from './actions'
 import { SiteNotes } from './notes'
+import { AddWorkDay } from './add-day'
 
 export const dynamic = 'force-dynamic'
 
@@ -111,7 +112,8 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
             <div className="num text-[15px] text-[var(--own)]">{money(c.earned)}</div>
           </div>
         ))}
-        {!d.crew.length && <div className="row px-4 py-4 text-sm text-[var(--muted)]">Nobody scheduled here yet — assign days in Week.</div>}
+        {!d.crew.length && <div className="row px-4 py-4 text-sm text-[var(--muted)]">Nobody here yet — add a day below or assign in Week.</div>}
+        <AddWorkDay siteId={site.id} workers={d.workers} recent={d.recent} siteNames={d.siteNames} />
       </div>
 
       <div className="label mx-0.5 mb-2.5 mt-[26px]">Timeline</div>
