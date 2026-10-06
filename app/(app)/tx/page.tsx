@@ -79,7 +79,7 @@ export default async function Transactions(
 
       <SharePeriod month={month} />
       <div className="mt-3">
-        <Entries entries={d.entries} sites={d.sites.map(s => ({ id: s.id, name: s.name }))} editable />
+        <Entries entries={d.entries} partners={d.partners} sites={d.sites.map(s => ({ id: s.id, name: s.name }))} editable />
       </div>
       {filtered && !d.entries.length && (
         <div className="row px-4 py-6 text-center text-sm text-[var(--muted)]">Nothing matches this filter.</div>

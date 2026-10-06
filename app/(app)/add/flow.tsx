@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { money, today } from '@/lib/money'
 import { Sheet, SheetRow, STATUS, flash } from '@/components/ui'
 
-type Props = { sites: { id: string; name: string; status: string }[]; guess: string | null; fromSchedule: boolean; partners: { id: string; name: string; is_owner: boolean }[] }
+type Props = { sites: { id: string; name: string; status: string }[]; guess: string | null; fromSchedule: boolean; partners: { id: string; name: string; is_owner: boolean }[]; asPartner?: boolean }
 const CATS = ['materials', 'fuel', 'hotel', 'tickets', 'rental', 'insurance', 'amazon', 'food', 'other']
 
 /** Сценарий: снимок или картинка из галереи → сумма руками → Save.
@@ -18,7 +18,7 @@ const CATS = ['materials', 'fuel', 'hotel', 'tickets', 'rental', 'insurance', 'a
  *  без `capture` — галерею (на iOS он же предлагает выбор «снять / выбрать»).
  *  Раньше вход был один и с `capture`, поэтому картинку из галереи —
  *  присланную в мессенджер, скачанную из письма — добавить было нельзя. */
-export function AddFlow({ sites, guess, fromSchedule, partners }: Props) {
+export function AddFlow({ sites, guess, fromSchedule, partners, asPartner = false }: Props) {
   const router = useRouter()
   const camRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
@@ -29,7 +29,7 @@ export function AddFlow({ sites, guess, fromSchedule, partners }: Props) {
   const [busy, setBusy] = useState(false)
   const [sheet, setSheet] = useState<'site' | 'cat' | 'payer' | null>(null)
   // по умолчанию платит владелец — так почти всегда и есть
-  const [payer, setPayer] = useState(partners.find(p => p.is_owner)?.id || '')
+  const [payer, setPayer] = useState(partners.find(p => p.is_owner === !asPartner)?.id || '')
   const [viewer, setViewer] = useState(false)
   const [site, setSite] = useState(guess || '')
   // редактируемые поля подтверждения
@@ -146,7 +146,7 @@ export function AddFlow({ sites, guess, fromSchedule, partners }: Props) {
           </div>
           {!isReimb && <button onClick={() => setSheet('cat')} className="glass mt-2.5 flex min-h-[44px] w-full items-center justify-between px-3.5 text-sm"><span className="text-[var(--muted)]">Category</span><span>{cat}</span></button>}
           {partners.length > 1 && (
-            <button onClick={() => setSheet('payer')} className="glass mt-2.5 flex min-h-[44px] w-full items-center justify-between px-3.5 text-sm">
+            <button onClick={() => !asPartner && setSheet('payer')} disabled={asPartner} className="glass mt-2.5 flex min-h-[44px] w-full items-center justify-between px-3.5 text-sm">
               <span className="text-[var(--muted)]">Paid by</span>
               <span>{partners.find(p => p.id === payer)?.name || '—'}</span>
             </button>

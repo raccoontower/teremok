@@ -67,7 +67,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
           <div className="tag">Recent entries</div>
           <Link href={`/tx?m=${month}`} className="tag text-[var(--accent-2)]">All {d.count} →</Link>
         </div>
-        <Entries entries={d.entries} sites={d.sites.map(s => ({ id: s.id, name: s.name }))} editable wide />
+        <Entries entries={d.entries} partners={d.partners} sites={d.sites.map(s => ({ id: s.id, name: s.name }))} editable wide />
       </div>
 
       <div className="hidden lg:block">

@@ -60,15 +60,16 @@ export function passwordRole(input: string): Role | null {
   return owner ? 'owner' : partner ? 'partner' : gc ? 'gc' : null
 }
 
-/** Что роли разрешено. Владельцу — всё; остальным только смотреть, и
- *  управляющей компании — только свои возмещаемые покупки.
+/** Что роли разрешено. Владельцу — всё; партнёру смотреть и добавлять
+ *  расходы (плательщиком сервер ставит его самого); управляющей компании —
+ *  только свои возмещаемые покупки.
  *
  *  Проверяется в proxy.ts, то есть до любого обработчика: страницу можно не
  *  прятать вручную, забыть негде. */
 export function allows(role: Role, pathname: string, method: string): boolean {
   if (role === 'owner') return true
   const writing = method !== 'GET' && method !== 'HEAD'
-  if (role === 'partner') return !writing || pathname === '/api/login'
+  if (role === 'partner') return !writing || pathname === '/api/login' || (pathname === '/api/expenses' && method === 'POST')
   // gc
   if (writing && pathname !== '/api/login') return false
   return pathname === '/materials'

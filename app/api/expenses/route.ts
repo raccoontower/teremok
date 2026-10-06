@@ -21,9 +21,13 @@ export async function POST(req: Request) {
     if (error) return NextResponse.json({ error: `receipt upload: ${error.message}` }, { status: 500 })
   }
 
-  // по умолчанию платит владелец: почти все покупки идут с его карты
+  // по умолчанию платит владелец: почти все покупки идут с его карты;
+  // с партнёрского пароля плательщик всегда партнёр, что бы ни прислала форма
   let paid_by = form.get('paid_by') as string | null
-  if (!paid_by) {
+  if (req.headers.get('x-role') === 'partner') {
+    const { data } = await client.from('partners').select('id').eq('is_owner', false).order('name').limit(1).maybeSingle()
+    paid_by = data?.id ?? null
+  } else if (!paid_by) {
     const { data } = await client.from('partners').select('id').eq('is_owner', true).maybeSingle()
     paid_by = data?.id ?? null
   }

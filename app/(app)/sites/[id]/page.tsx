@@ -117,7 +117,7 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
       </div>
 
       <div className="label mx-0.5 mb-2.5 mt-[26px]">Timeline</div>
-      <Entries entries={d.entries} showSite={false} sites={[{ id: site.id, name: site.name }]} editable />
+      <Entries entries={d.entries} partners={d.partners} showSite={false} sites={[{ id: site.id, name: site.name }]} editable />
     </div>
   )
 }

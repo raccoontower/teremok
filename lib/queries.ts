@@ -106,10 +106,11 @@ function totalsFor(a: All, lines: WageLine[], pick: (siteId: string | null, date
   return t
 }
 
-export type Entry = { id: string; vendor: string; amount: number; kind: Expense['kind']; site: string; siteId: string | null; date: string; receipt: string | null; category: string; note: string | null }
+export type Entry = { id: string; vendor: string; amount: number; kind: Expense['kind']; site: string; siteId: string | null; date: string; receipt: string | null; category: string; note: string | null; paidBy: string | null; payer: string | null }
 function entriesOf(a: All, list: Expense[]): Entry[] {
   const name = new Map(a.sites.map(s => [s.id, s.name]))
-  return list.map(e => ({ id: e.id, vendor: e.vendor || e.category, amount: e.amount, kind: e.kind, site: e.site_id ? name.get(e.site_id) || '—' : 'No site', siteId: e.site_id, date: e.spent_on, receipt: e.receipt_path, category: e.category, note: e.note }))
+  const who = new Map(a.partners.map(p => [p.id, p.name]))
+  return list.map(e => ({ id: e.id, vendor: e.vendor || e.category, amount: e.amount, kind: e.kind, site: e.site_id ? name.get(e.site_id) || '—' : 'No site', siteId: e.site_id, date: e.spent_on, receipt: e.receipt_path, category: e.category, note: e.note, paidBy: e.paid_by ?? null, payer: e.paid_by ? who.get(e.paid_by) || null : null }))
 }
 
 export async function homeData(month: string) {
@@ -184,6 +185,7 @@ export async function txData(month: string, filter?: 'own' | 'reimbursable', sit
     rows.filter(e => !kind || e.kind === kind).reduce((s, e) => s + e.amount, 0)
   const orphans = inMonth.filter(e => !e.site_id)
   return {
+    partners: a.partners.map(p => ({ id: p.id, name: p.name })),
     entries: entriesOf(a, list),
     own: sum(bySite, 'own'),
     reimb: sum(bySite, 'reimbursable'),
@@ -229,6 +231,7 @@ export async function siteData(id: string) {
   return {
     site, totals, gc, notes, crew, entries: entriesOf(a, a.expenses.filter(e => e.site_id === id)), income,
     workers: a.workers.map(w => ({ id: w.id, name: w.name })), recent, siteNames,
+    partners: a.partners.map(p => ({ id: p.id, name: p.name })),
   }
 }
 

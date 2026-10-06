@@ -7,6 +7,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (b.site_id !== undefined) patch.site_id = b.site_id || null
   if (b.reimbursed_on !== undefined) patch.reimbursed_on = b.reimbursed_on || null
   if (b.amount !== undefined) patch.amount = Number(b.amount)
+  if (b.paid_by) patch.paid_by = b.paid_by
   const { error } = await db().from('expenses').update(patch).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
