@@ -33,9 +33,9 @@ type WageLine = { worker_id: string; site_id: string; month: string; days: numbe
 
 const n = (v: unknown) => Number(v) || 0
 
-async function loadAll() {
+function fetchAll() {
   const c = db()
-  const [sites, workers, expenses, income, sched, payroll, payouts, partners] = await Promise.all([
+  return Promise.all([
     c.from('sites').select('*').order('created_at', { ascending: false }),
     c.from('workers').select('*').order('name'),
     c.from('expenses').select('id,site_id,spent_on,amount,kind,category,vendor,receipt_path,reimbursed_on,note,paid_by').order('spent_on', { ascending: false }).order('created_at', { ascending: false }),
@@ -45,7 +45,22 @@ async function loadAll() {
     c.from('partner_payouts').select('id,partner_id,site_id,paid_on,amount,note,paid_by'),
     c.from('partners').select('id,name,share,is_owner').order('name'),
   ])
-  for (const r of [sites, workers, expenses, income, sched, payroll, payouts, partners]) if (r.error) throw new Error(r.error.message)
+}
+
+async function loadAll() {
+  // Supabase изредка роняет самый первый запрос за время жизни процесса
+  // ошибкой шлюза ("JWT issued at future" — рассинхрон часов между её edge и
+  // PostgREST на свежем соединении, не наша вина и не лечится на нашей
+  // стороне иначе). Проходит сама за одну-две секунды: несколько повторных
+  // попыток с нарастающей паузой вместо падения всей страницы на то, что
+  // исправится само.
+  let rows = await fetchAll()
+  for (let wait = 600; rows.some(r => r.error) && wait <= 2400; wait *= 2) {
+    await new Promise(r => setTimeout(r, wait))
+    rows = await fetchAll()
+  }
+  const [sites, workers, expenses, income, sched, payroll, payouts, partners] = rows
+  for (const r of rows) if (r.error) throw new Error(r.error.message)
   return {
     sites: ((sites.data || []) as Site[]).map(s => ({ ...s, contract_amount: s.contract_amount == null ? null : n(s.contract_amount), trench_feet: s.trench_feet == null ? null : n(s.trench_feet), trench_rate: s.trench_rate == null ? null : n(s.trench_rate) })),
     workers: ((workers.data || []) as Worker[]).map(w => ({ ...w, default_rate: w.default_rate == null ? null : n(w.default_rate) })),
