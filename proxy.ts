@@ -10,7 +10,9 @@ import { COOKIE, verifyToken, allows, homeFor } from '@/lib/auth'
  *  открытым просто потому, что про него забыли. */
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
-  if (pathname === '/login' || pathname === '/api/login' || pathname.startsWith('/share/')) return NextResponse.next()
+  // /api/health — без логина: это прогрев с домашней коробки по таймеру
+  // (deploy/teremok-warmup.timer), а не экран приложения.
+  if (pathname === '/login' || pathname === '/api/login' || pathname === '/api/health' || pathname.startsWith('/share/')) return NextResponse.next()
   const secret = process.env.APP_SECRET
   if (!secret) return new NextResponse('APP_SECRET is not set', { status: 500 })
   const role = await verifyToken(req.cookies.get(COOKIE)?.value, secret)

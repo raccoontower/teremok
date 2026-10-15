@@ -1,0 +1,8 @@
+[Unit]
+Description=Прогрев Teremok — не дать функции Vercel и соединению с Supabase остыть
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -c 'echo "[$(date -u +%%FT%%TZ)] $(curl -s -o /dev/null --max-time 10 -w "%%{http_code}" https://teremok.live/api/health)"'
+StandardOutput=append:/home/komodikus/projects/teremok/logs/warmup.log
+StandardError=append:/home/komodikus/projects/teremok/logs/warmup.log
