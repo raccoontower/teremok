@@ -28,3 +28,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 Один раз правка молча прошла мимо: строка изменилась после сплошной замены
 скруглений, блок не вставился, и владелец увидел на проде экран без нового
 функционала.
+
+## Supabase: GRANT в новых таблицах (с 30.10.2026)
+
+Каждая миграция с `create table public.x` сразу пишет `enable row level security` и
+`grant select, insert, update, delete on public.x to service_role, authenticated;`
+(+ `grant select ... to anon`, если читает публичный клиент). Без этого Data API отдаёт
+`permission denied`. Подробнее — `~/projects/OPERATOR.md` §5.
